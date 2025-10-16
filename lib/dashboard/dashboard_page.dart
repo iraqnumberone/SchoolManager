@@ -4,6 +4,8 @@ import 'package:school_app/core/app_config.dart';
 import 'package:school_app/dashboard/widgets/stats_card.dart';
 import 'package:school_app/dashboard/widgets/quick_action_card.dart';
 import 'package:school_app/dashboard/widgets/recent_activity_card.dart';
+import 'package:school_app/attendance_management/pages/attendance_page.dart';
+import 'package:school_app/student_management/pages/grades_page.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -250,7 +252,11 @@ class _DashboardPageState extends State<DashboardPage> with TickerProviderStateM
                     icon: Icons.check_circle_outline,
                     color: AppConfig.secondaryColor,
                     onTap: () {
-                      // الانتقال إلى صفحة الحضور
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const AttendancePage(),
+                        ),
+                      );
                     },
                   ),
                   QuickActionCard(
@@ -258,7 +264,11 @@ class _DashboardPageState extends State<DashboardPage> with TickerProviderStateM
                     icon: Icons.grade_outlined,
                     color: AppConfig.secondaryColor,
                     onTap: () {
-                      // الانتقال إلى صفحة الدرجات
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const GradesPage(),
+                        ),
+                      );
                     },
                   ),
                   QuickActionCard(

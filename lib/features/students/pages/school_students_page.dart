@@ -552,6 +552,7 @@ class _SchoolStudentsPageState extends State<SchoolStudentsPage> {
     );
   }
 }
+
 class EditStudentDialog extends StatefulWidget {
   final School school;
   final Map<String, dynamic> student;
@@ -601,10 +602,18 @@ class _EditStudentDialogState extends State<EditStudentDialog> {
     super.initState();
     // Initialize with current student data
     final nameParts = widget.student['name'].toString().split(' ');
-    _firstNameController = TextEditingController(text: nameParts.length > 0 ? nameParts[0] : '');
-    _middleNameController = TextEditingController(text: nameParts.length > 1 ? nameParts[1] : '');
-    _lastNameController = TextEditingController(text: nameParts.length > 2 ? nameParts[2] : '');
-    _familyNameController = TextEditingController(text: nameParts.length > 3 ? nameParts[3] : '');
+    _firstNameController = TextEditingController(
+      text: nameParts.isNotEmpty ? nameParts[0] : '',
+    );
+    _middleNameController = TextEditingController(
+      text: nameParts.length > 1 ? nameParts[1] : '',
+    );
+    _lastNameController = TextEditingController(
+      text: nameParts.length > 2 ? nameParts[2] : '',
+    );
+    _familyNameController = TextEditingController(
+      text: nameParts.length > 3 ? nameParts[3] : '',
+    );
 
     // Extract current education level and section from student data
     final classInfo = widget.student['class'].toString();
@@ -648,14 +657,16 @@ class _EditStudentDialogState extends State<EditStudentDialog> {
     });
 
     // Create updated student data
-    final fullName = '${_firstNameController.text.trim()} ${_middleNameController.text.trim()} ${_lastNameController.text.trim()} ${_familyNameController.text.trim()}';
+    final fullName =
+        '${_firstNameController.text.trim()} ${_middleNameController.text.trim()} ${_lastNameController.text.trim()} ${_familyNameController.text.trim()}';
 
     await Future.delayed(const Duration(seconds: 1));
 
     final updatedStudent = {
       'id': widget.student['id'],
       'name': fullName,
-      'class': '${widget.school.name} - $_selectedEducationLevel - شعبة $_selectedSection',
+      'class':
+          '${widget.school.name} - $_selectedEducationLevel - شعبة $_selectedSection',
       'grade': widget.student['grade'],
       'attendance': widget.student['attendance'],
     };
@@ -664,7 +675,9 @@ class _EditStudentDialogState extends State<EditStudentDialog> {
       _isLoading = false;
     });
 
-    Navigator.of(context).pop();
+    if (mounted) {
+      Navigator.of(context).pop();
+    }
     widget.onStudentUpdated(updatedStudent);
 
     if (mounted) {
@@ -716,10 +729,14 @@ class _EditStudentDialogState extends State<EditStudentDialog> {
                     fontSize: AppConfig.fontSizeMedium,
                   ),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppConfig.borderRadius / 2),
+                    borderRadius: BorderRadius.circular(
+                      AppConfig.borderRadius / 2,
+                    ),
                   ),
                   disabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppConfig.borderRadius / 2),
+                    borderRadius: BorderRadius.circular(
+                      AppConfig.borderRadius / 2,
+                    ),
                     borderSide: BorderSide(color: AppConfig.borderColor),
                   ),
                   filled: true,
@@ -734,7 +751,7 @@ class _EditStudentDialogState extends State<EditStudentDialog> {
 
               // Education level dropdown
               DropdownButtonFormField<String>(
-                value: _selectedEducationLevel,
+                initialValue: _selectedEducationLevel,
                 decoration: InputDecoration(
                   labelText: 'مرحلة الدراسة',
                   labelStyle: GoogleFonts.cairo(
@@ -742,10 +759,14 @@ class _EditStudentDialogState extends State<EditStudentDialog> {
                     fontSize: AppConfig.fontSizeMedium,
                   ),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppConfig.borderRadius / 2),
+                    borderRadius: BorderRadius.circular(
+                      AppConfig.borderRadius / 2,
+                    ),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppConfig.borderRadius / 2),
+                    borderRadius: BorderRadius.circular(
+                      AppConfig.borderRadius / 2,
+                    ),
                     borderSide: BorderSide(color: AppConfig.primaryColor),
                   ),
                 ),
@@ -754,10 +775,7 @@ class _EditStudentDialogState extends State<EditStudentDialog> {
                   color: AppConfig.textPrimaryColor,
                 ),
                 items: _detailedEducationLevels.map((level) {
-                  return DropdownMenuItem(
-                    value: level,
-                    child: Text(level),
-                  );
+                  return DropdownMenuItem(value: level, child: Text(level));
                 }).toList(),
                 onChanged: (value) {
                   setState(() {
@@ -775,7 +793,7 @@ class _EditStudentDialogState extends State<EditStudentDialog> {
 
               // Section dropdown
               DropdownButtonFormField<String>(
-                value: _selectedSection,
+                initialValue: _selectedSection,
                 decoration: InputDecoration(
                   labelText: 'الشعبة',
                   labelStyle: GoogleFonts.cairo(
@@ -783,10 +801,14 @@ class _EditStudentDialogState extends State<EditStudentDialog> {
                     fontSize: AppConfig.fontSizeMedium,
                   ),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppConfig.borderRadius / 2),
+                    borderRadius: BorderRadius.circular(
+                      AppConfig.borderRadius / 2,
+                    ),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppConfig.borderRadius / 2),
+                    borderRadius: BorderRadius.circular(
+                      AppConfig.borderRadius / 2,
+                    ),
                     borderSide: BorderSide(color: AppConfig.primaryColor),
                   ),
                 ),
@@ -835,10 +857,14 @@ class _EditStudentDialogState extends State<EditStudentDialog> {
                     fontSize: AppConfig.fontSizeSmall,
                   ),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppConfig.borderRadius / 2),
+                    borderRadius: BorderRadius.circular(
+                      AppConfig.borderRadius / 2,
+                    ),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppConfig.borderRadius / 2),
+                    borderRadius: BorderRadius.circular(
+                      AppConfig.borderRadius / 2,
+                    ),
                     borderSide: BorderSide(color: AppConfig.primaryColor),
                   ),
                 ),
@@ -865,10 +891,14 @@ class _EditStudentDialogState extends State<EditStudentDialog> {
                     fontSize: AppConfig.fontSizeSmall,
                   ),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppConfig.borderRadius / 2),
+                    borderRadius: BorderRadius.circular(
+                      AppConfig.borderRadius / 2,
+                    ),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppConfig.borderRadius / 2),
+                    borderRadius: BorderRadius.circular(
+                      AppConfig.borderRadius / 2,
+                    ),
                     borderSide: BorderSide(color: AppConfig.primaryColor),
                   ),
                 ),
@@ -895,10 +925,14 @@ class _EditStudentDialogState extends State<EditStudentDialog> {
                     fontSize: AppConfig.fontSizeSmall,
                   ),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppConfig.borderRadius / 2),
+                    borderRadius: BorderRadius.circular(
+                      AppConfig.borderRadius / 2,
+                    ),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppConfig.borderRadius / 2),
+                    borderRadius: BorderRadius.circular(
+                      AppConfig.borderRadius / 2,
+                    ),
                     borderSide: BorderSide(color: AppConfig.primaryColor),
                   ),
                 ),
@@ -925,10 +959,14 @@ class _EditStudentDialogState extends State<EditStudentDialog> {
                     fontSize: AppConfig.fontSizeSmall,
                   ),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppConfig.borderRadius / 2),
+                    borderRadius: BorderRadius.circular(
+                      AppConfig.borderRadius / 2,
+                    ),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppConfig.borderRadius / 2),
+                    borderRadius: BorderRadius.circular(
+                      AppConfig.borderRadius / 2,
+                    ),
                     borderSide: BorderSide(color: AppConfig.primaryColor),
                   ),
                 ),
@@ -1074,7 +1112,8 @@ class _AddStudentDialogState extends State<AddStudentDialog> {
     });
 
     // Create full name
-    final fullName = '${_firstNameController.text.trim()} ${_middleNameController.text.trim()} ${_lastNameController.text.trim()} ${_familyNameController.text.trim()}';
+    final fullName =
+        '${_firstNameController.text.trim()} ${_middleNameController.text.trim()} ${_lastNameController.text.trim()} ${_familyNameController.text.trim()}';
 
     await Future.delayed(const Duration(seconds: 1));
 
@@ -1082,14 +1121,16 @@ class _AddStudentDialogState extends State<AddStudentDialog> {
     final newStudent = {
       'id': 'student_${DateTime.now().millisecondsSinceEpoch}',
       'name': fullName,
-      'class': '${widget.school.name} - $_selectedEducationLevel - شعبة $_selectedSection',
+      'class':
+          '${widget.school.name} - $_selectedEducationLevel - شعبة $_selectedSection',
       'grade': 'جيد',
       'attendance': 0,
     };
 
     // Add to parent state
     if (mounted) {
-      final parentState = context.findAncestorStateOfType<_SchoolStudentsPageState>();
+      final parentState = context
+          .findAncestorStateOfType<_SchoolStudentsPageState>();
       if (parentState != null) {
         parentState._students.add(newStudent);
         parentState.setState(() {});
@@ -1100,7 +1141,9 @@ class _AddStudentDialogState extends State<AddStudentDialog> {
       _isLoading = false;
     });
 
-    Navigator.of(context).pop();
+    if (mounted) {
+      Navigator.of(context).pop();
+    }
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1122,7 +1165,9 @@ class _AddStudentDialogState extends State<AddStudentDialog> {
       );
 
       if (mounted) {
-        context.findAncestorStateOfType<_SchoolStudentsPageState>()?._loadStudents();
+        context
+            .findAncestorStateOfType<_SchoolStudentsPageState>()
+            ?._loadStudents();
       }
     }
   }
@@ -1155,10 +1200,14 @@ class _AddStudentDialogState extends State<AddStudentDialog> {
                     fontSize: AppConfig.fontSizeMedium,
                   ),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppConfig.borderRadius / 2),
+                    borderRadius: BorderRadius.circular(
+                      AppConfig.borderRadius / 2,
+                    ),
                   ),
                   disabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppConfig.borderRadius / 2),
+                    borderRadius: BorderRadius.circular(
+                      AppConfig.borderRadius / 2,
+                    ),
                     borderSide: BorderSide(color: AppConfig.borderColor),
                   ),
                   filled: true,
@@ -1173,7 +1222,7 @@ class _AddStudentDialogState extends State<AddStudentDialog> {
 
               // Education level dropdown
               DropdownButtonFormField<String>(
-                value: _selectedEducationLevel,
+                initialValue: _selectedEducationLevel,
                 decoration: InputDecoration(
                   labelText: 'مرحلة الدراسة',
                   labelStyle: GoogleFonts.cairo(
@@ -1181,10 +1230,14 @@ class _AddStudentDialogState extends State<AddStudentDialog> {
                     fontSize: AppConfig.fontSizeMedium,
                   ),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppConfig.borderRadius / 2),
+                    borderRadius: BorderRadius.circular(
+                      AppConfig.borderRadius / 2,
+                    ),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppConfig.borderRadius / 2),
+                    borderRadius: BorderRadius.circular(
+                      AppConfig.borderRadius / 2,
+                    ),
                     borderSide: BorderSide(color: AppConfig.primaryColor),
                   ),
                 ),
@@ -1193,10 +1246,7 @@ class _AddStudentDialogState extends State<AddStudentDialog> {
                   color: AppConfig.textPrimaryColor,
                 ),
                 items: _detailedEducationLevels.map((level) {
-                  return DropdownMenuItem(
-                    value: level,
-                    child: Text(level),
-                  );
+                  return DropdownMenuItem(value: level, child: Text(level));
                 }).toList(),
                 onChanged: (value) {
                   setState(() {
@@ -1214,7 +1264,7 @@ class _AddStudentDialogState extends State<AddStudentDialog> {
 
               // Section dropdown
               DropdownButtonFormField<String>(
-                value: _selectedSection,
+                initialValue: _selectedSection,
                 decoration: InputDecoration(
                   labelText: 'الشعبة',
                   labelStyle: GoogleFonts.cairo(
@@ -1222,10 +1272,14 @@ class _AddStudentDialogState extends State<AddStudentDialog> {
                     fontSize: AppConfig.fontSizeMedium,
                   ),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppConfig.borderRadius / 2),
+                    borderRadius: BorderRadius.circular(
+                      AppConfig.borderRadius / 2,
+                    ),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppConfig.borderRadius / 2),
+                    borderRadius: BorderRadius.circular(
+                      AppConfig.borderRadius / 2,
+                    ),
                     borderSide: BorderSide(color: AppConfig.primaryColor),
                   ),
                 ),
@@ -1274,10 +1328,14 @@ class _AddStudentDialogState extends State<AddStudentDialog> {
                     fontSize: AppConfig.fontSizeSmall,
                   ),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppConfig.borderRadius / 2),
+                    borderRadius: BorderRadius.circular(
+                      AppConfig.borderRadius / 2,
+                    ),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppConfig.borderRadius / 2),
+                    borderRadius: BorderRadius.circular(
+                      AppConfig.borderRadius / 2,
+                    ),
                     borderSide: BorderSide(color: AppConfig.primaryColor),
                   ),
                 ),
@@ -1304,10 +1362,14 @@ class _AddStudentDialogState extends State<AddStudentDialog> {
                     fontSize: AppConfig.fontSizeSmall,
                   ),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppConfig.borderRadius / 2),
+                    borderRadius: BorderRadius.circular(
+                      AppConfig.borderRadius / 2,
+                    ),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppConfig.borderRadius / 2),
+                    borderRadius: BorderRadius.circular(
+                      AppConfig.borderRadius / 2,
+                    ),
                     borderSide: BorderSide(color: AppConfig.primaryColor),
                   ),
                 ),
@@ -1334,10 +1396,14 @@ class _AddStudentDialogState extends State<AddStudentDialog> {
                     fontSize: AppConfig.fontSizeSmall,
                   ),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppConfig.borderRadius / 2),
+                    borderRadius: BorderRadius.circular(
+                      AppConfig.borderRadius / 2,
+                    ),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppConfig.borderRadius / 2),
+                    borderRadius: BorderRadius.circular(
+                      AppConfig.borderRadius / 2,
+                    ),
                     borderSide: BorderSide(color: AppConfig.primaryColor),
                   ),
                 ),
@@ -1364,10 +1430,14 @@ class _AddStudentDialogState extends State<AddStudentDialog> {
                     fontSize: AppConfig.fontSizeSmall,
                   ),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppConfig.borderRadius / 2),
+                    borderRadius: BorderRadius.circular(
+                      AppConfig.borderRadius / 2,
+                    ),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppConfig.borderRadius / 2),
+                    borderRadius: BorderRadius.circular(
+                      AppConfig.borderRadius / 2,
+                    ),
                     borderSide: BorderSide(color: AppConfig.primaryColor),
                   ),
                 ),

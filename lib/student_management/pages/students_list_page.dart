@@ -3,6 +3,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:school_app/core/app_config.dart';
 import 'package:school_app/student_management/models/student.dart';
 import 'package:school_app/student_management/services/student_service.dart';
+import 'student_report_page.dart';
+import 'package:school_app/attendance_management/pages/attendance_page.dart';
+import 'grades_page.dart';
 
 class StudentsListPage extends StatefulWidget {
   const StudentsListPage({super.key});
@@ -63,8 +66,8 @@ class _StudentsListPageState extends State<StudentsListPage> {
     final query = _searchQuery.toLowerCase();
     return students.where((student) {
       return student.fullName.toLowerCase().contains(query) ||
-             student.studentId.toLowerCase().contains(query) ||
-             student.phone.toLowerCase().contains(query);
+          student.studentId.toLowerCase().contains(query) ||
+          student.phone.toLowerCase().contains(query);
     }).toList();
   }
 
@@ -152,16 +155,25 @@ class _StudentsListPageState extends State<StudentsListPage> {
                           )
                         : null,
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(AppConfig.borderRadius),
+                      borderRadius: BorderRadius.circular(
+                        AppConfig.borderRadius,
+                      ),
                       borderSide: BorderSide(color: AppConfig.borderColor),
                     ),
                     enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(AppConfig.borderRadius),
+                      borderRadius: BorderRadius.circular(
+                        AppConfig.borderRadius,
+                      ),
                       borderSide: BorderSide(color: AppConfig.borderColor),
                     ),
                     focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(AppConfig.borderRadius),
-                      borderSide: BorderSide(color: AppConfig.primaryColor, width: 2),
+                      borderRadius: BorderRadius.circular(
+                        AppConfig.borderRadius,
+                      ),
+                      borderSide: BorderSide(
+                        color: AppConfig.primaryColor,
+                        width: 2,
+                      ),
                     ),
                     filled: true,
                     fillColor: AppConfig.backgroundColor,
@@ -196,13 +208,13 @@ class _StudentsListPageState extends State<StudentsListPage> {
                     ),
                   )
                 : _filteredStudents.isEmpty
-                    ? _buildEmptyState()
-                    : ListView.builder(
-                        itemCount: _filteredStudents.length,
-                        itemBuilder: (context, index) {
-                          return _buildStudentCard(_filteredStudents[index]);
-                        },
-                      ),
+                ? _buildEmptyState()
+                : ListView.builder(
+                    itemCount: _filteredStudents.length,
+                    itemBuilder: (context, index) {
+                      return _buildStudentCard(_filteredStudents[index]);
+                    },
+                  ),
           ),
         ],
       ),
@@ -216,9 +228,7 @@ class _StudentsListPageState extends State<StudentsListPage> {
         icon: const Icon(Icons.person_add),
         label: Text(
           'إضافة طالب',
-          style: GoogleFonts.cairo(
-            fontWeight: FontWeight.w600,
-          ),
+          style: GoogleFonts.cairo(fontWeight: FontWeight.w600),
         ),
       ),
     );
@@ -264,11 +274,7 @@ class _StudentsListPageState extends State<StudentsListPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.people_outline,
-            size: 80,
-            color: AppConfig.textLightColor,
-          ),
+          Icon(Icons.people_outline, size: 80, color: AppConfig.textLightColor),
           const SizedBox(height: AppConfig.spacingLG),
           Text(
             _searchQuery.isEmpty
@@ -369,10 +375,21 @@ class _StudentsListPageState extends State<StudentsListPage> {
                 // تعديل بيانات الطالب
                 break;
               case 'attendance':
-                // عرض سجل الحضور
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const AttendancePage(),
+                  ),
+                );
                 break;
               case 'grades':
-                // عرض الدرجات
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const GradesPage(),
+                  ),
+                );
+                break;
+              case 'report':
+                _showStudentReport(student);
                 break;
             }
           },
@@ -417,6 +434,26 @@ class _StudentsListPageState extends State<StudentsListPage> {
                 ],
               ),
             ),
+            PopupMenuItem(
+              value: 'report',
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.analytics,
+                    size: 20,
+                    color: AppConfig.primaryColor,
+                  ),
+                  SizedBox(width: 8),
+                  Text(
+                    'التقرير',
+                    style: GoogleFonts.cairo(
+                      color: AppConfig.primaryColor,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
         onTap: () {
@@ -432,72 +469,142 @@ class _StudentsListPageState extends State<StudentsListPage> {
   void _showFilterDialog() {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(
-          'تصفية الطلاب',
-          style: GoogleFonts.cairo(),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              title: Text(
-                'الكل',
-                style: GoogleFonts.cairo(),
-              ),
-              leading: Radio<String>(
-                value: 'الكل',
-                groupValue: _selectedFilter,
-                onChanged: (value) {
-                  Navigator.of(context).pop();
-                  _onFilterChanged(value!);
-                },
-              ),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            title: Text('تصفية الطلاب', style: GoogleFonts.cairo()),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                InkWell(
+                  onTap: () {
+                    setState(() {
+                      _selectedFilter = 'الكل';
+                    });
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                    decoration: BoxDecoration(
+                      color: _selectedFilter == 'الكل' ? AppConfig.primaryColor.withValues(alpha: 0.1) : Colors.transparent,
+                      border: Border.all(
+                        color: _selectedFilter == 'الكل' ? AppConfig.primaryColor : AppConfig.borderColor,
+                        width: 1,
+                      ),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          _selectedFilter == 'الكل' ? Icons.radio_button_checked : Icons.radio_button_unchecked,
+                          color: _selectedFilter == 'الكل' ? AppConfig.primaryColor : AppConfig.textSecondaryColor,
+                        ),
+                        const SizedBox(width: 8),
+                        Text('الكل', style: GoogleFonts.cairo()),
+                      ],
+                    ),
+                  ),
+                ),
+                InkWell(
+                  onTap: () {
+                    setState(() {
+                      _selectedFilter = 'المرحلة الأولى';
+                    });
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                    decoration: BoxDecoration(
+                      color: _selectedFilter == 'المرحلة الأولى' ? AppConfig.primaryColor.withValues(alpha: 0.1) : Colors.transparent,
+                      border: Border.all(
+                        color: _selectedFilter == 'المرحلة الأولى' ? AppConfig.primaryColor : AppConfig.borderColor,
+                        width: 1,
+                      ),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          _selectedFilter == 'المرحلة الأولى' ? Icons.radio_button_checked : Icons.radio_button_unchecked,
+                          color: _selectedFilter == 'المرحلة الأولى' ? AppConfig.primaryColor : AppConfig.textSecondaryColor,
+                        ),
+                        const SizedBox(width: 8),
+                        Text('المرحلة الأولى', style: GoogleFonts.cairo()),
+                      ],
+                    ),
+                  ),
+                ),
+                InkWell(
+                  onTap: () {
+                    setState(() {
+                      _selectedFilter = 'المرحلة الثانية';
+                    });
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                    decoration: BoxDecoration(
+                      color: _selectedFilter == 'المرحلة الثانية' ? AppConfig.primaryColor.withValues(alpha: 0.1) : Colors.transparent,
+                      border: Border.all(
+                        color: _selectedFilter == 'المرحلة الثانية' ? AppConfig.primaryColor : AppConfig.borderColor,
+                        width: 1,
+                      ),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          _selectedFilter == 'المرحلة الثانية' ? Icons.radio_button_checked : Icons.radio_button_unchecked,
+                          color: _selectedFilter == 'المرحلة الثانية' ? AppConfig.primaryColor : AppConfig.textSecondaryColor,
+                        ),
+                        const SizedBox(width: 8),
+                        Text('المرحلة الثانية', style: GoogleFonts.cairo()),
+                      ],
+                    ),
+                  ),
+                ),
+                InkWell(
+                  onTap: () {
+                    setState(() {
+                      _selectedFilter = 'المرحلة الثالثة';
+                    });
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                    decoration: BoxDecoration(
+                      color: _selectedFilter == 'المرحلة الثالثة' ? AppConfig.primaryColor.withValues(alpha: 0.1) : Colors.transparent,
+                      border: Border.all(
+                        color: _selectedFilter == 'المرحلة الثالثة' ? AppConfig.primaryColor : AppConfig.borderColor,
+                        width: 1,
+                      ),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          _selectedFilter == 'المرحلة الثالثة' ? Icons.radio_button_checked : Icons.radio_button_unchecked,
+                          color: _selectedFilter == 'المرحلة الثالثة' ? AppConfig.primaryColor : AppConfig.textSecondaryColor,
+                        ),
+                        const SizedBox(width: 8),
+                        Text('المرحلة الثالثة', style: GoogleFonts.cairo()),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
-            ListTile(
-              title: Text(
-                'المرحلة الأولى',
-                style: GoogleFonts.cairo(),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text('إلغاء', style: GoogleFonts.cairo()),
               ),
-              leading: Radio<String>(
-                value: 'المرحلة الأولى',
-                groupValue: _selectedFilter,
-                onChanged: (value) {
+              ElevatedButton(
+                onPressed: () {
                   Navigator.of(context).pop();
-                  _onFilterChanged(value!);
+                  _onFilterChanged(_selectedFilter);
                 },
+                child: Text('تطبيق', style: GoogleFonts.cairo()),
               ),
-            ),
-            ListTile(
-              title: Text(
-                'المرحلة الثانية',
-                style: GoogleFonts.cairo(),
-              ),
-              leading: Radio<String>(
-                value: 'المرحلة الثانية',
-                groupValue: _selectedFilter,
-                onChanged: (value) {
-                  Navigator.of(context).pop();
-                  _onFilterChanged(value!);
-                },
-              ),
-            ),
-            ListTile(
-              title: Text(
-                'المرحلة الثالثة',
-                style: GoogleFonts.cairo(),
-              ),
-              leading: Radio<String>(
-                value: 'المرحلة الثالثة',
-                groupValue: _selectedFilter,
-                onChanged: (value) {
-                  Navigator.of(context).pop();
-                  _onFilterChanged(value!);
-                },
-              ),
-            ),
-          ],
-        ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -506,10 +613,7 @@ class _StudentsListPageState extends State<StudentsListPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(
-          'تفاصيل الطالب',
-          style: GoogleFonts.cairo(),
-        ),
+        title: Text('تفاصيل الطالب', style: GoogleFonts.cairo()),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -517,26 +621,45 @@ class _StudentsListPageState extends State<StudentsListPage> {
             children: [
               _buildDetailRow('الاسم الكامل', student.fullName),
               _buildDetailRow('رقم الطالب', student.studentId),
-              _buildDetailRow('تاريخ الميلاد', '${student.birthDate.toString().split(' ')[0]} (${student.age} سنة)'),
-              _buildDetailRow('الجنس', student.gender == 'male' ? 'ذكر' : 'أنثى'),
+              _buildDetailRow(
+                'تاريخ الميلاد',
+                '${student.birthDate.toString().split(' ')[0]} (${student.age} سنة)',
+              ),
+              _buildDetailRow(
+                'الجنس',
+                student.gender == 'male' ? 'ذكر' : 'أنثى',
+              ),
               _buildDetailRow('العنوان', student.address),
               _buildDetailRow('رقم الهاتف', student.phone),
               if (student.parentPhone != null)
                 _buildDetailRow('هاتف ولي الأمر', student.parentPhone!),
-              _buildDetailRow('تاريخ التسجيل', student.enrollmentDate.toString().split(' ')[0]),
-              _buildDetailRow('الحالة', student.status == AppConfig.studentStatusActive ? 'نشط' : 'غير نشط'),
+              _buildDetailRow(
+                'تاريخ التسجيل',
+                student.enrollmentDate.toString().split(' ')[0],
+              ),
+              _buildDetailRow(
+                'الحالة',
+                student.status == AppConfig.studentStatusActive
+                    ? 'نشط'
+                    : 'غير نشط',
+              ),
             ],
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: Text(
-              'إغلاق',
-              style: GoogleFonts.cairo(),
-            ),
+            child: Text('إغلاق', style: GoogleFonts.cairo()),
           ),
         ],
+      ),
+    );
+  }
+
+  void _showStudentReport(Student student) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => StudentReportPage(studentId: student.id),
       ),
     );
   }

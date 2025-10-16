@@ -2,6 +2,7 @@ import 'package:school_app/core/app_config.dart';
 import 'package:school_app/student_management/models/student.dart';
 import 'package:school_app/student_management/models/attendance.dart';
 import 'package:school_app/student_management/models/grade.dart';
+import 'package:school_app/student_management/models/student_report.dart';
 
 class StudentService {
   // محاكاة قاعدة البيانات المحلية
@@ -428,6 +429,91 @@ class StudentService {
           }
         }
       }
+    }
+  }
+
+  // إنشاء تقرير شامل للطالب
+  static Future<StudentReport> generateStudentReport(String studentId) async {
+    try {
+      await Future.delayed(const Duration(milliseconds: 500));
+
+      // الحصول على بيانات الطالب
+      final student = await getStudentById(studentId);
+      if (student == null) {
+        throw Exception('الطالب غير موجود');
+      }
+
+      // الحصول على إحصائيات الحضور
+      final attendanceStats = await getStudentAttendanceStats(studentId);
+
+      // الحصول على إحصائيات الدرجات
+      final gradeStats = await getStudentGradeStats(studentId);
+
+      // الحصول على أحدث سجلات الحضور (آخر 10 سجلات)
+      final recentAttendance = await getStudentAttendance(
+        studentId,
+        toDate: DateTime.now(),
+      );
+      final latestAttendance = recentAttendance.take(10).toList();
+
+      // الحصول على أحدث الدرجات (آخر 10 درجات)
+      final recentGrades = await getStudentGrades(studentId);
+      final latestGrades = recentGrades.take(10).toList();
+
+      // حساب التقييم العام (70% درجات + 30% حضور)
+      final attendanceRate = attendanceStats['attendanceRate'] ?? 0.0;
+      final gradeAverage = gradeStats['overallAverage'] ?? 0.0;
+      final overallScore = (gradeAverage * 0.7) + (attendanceRate * 0.3);
+
+      // تحديد التقييم بناءً على النتيجة العامة
+      String evaluation;
+      if (overallScore >= 90) {
+        evaluation = 'ممتاز جداً - أداء متميز في الدراسة والحضور';
+      } else if (overallScore >= 80) {
+        evaluation = 'ممتاز - أداء جيد في الدراسة والحضور';
+      } else if (overallScore >= 70) {
+        evaluation = 'جيد - أداء مقبول مع إمكانية تحسين';
+      } else if (overallScore >= 60) {
+        evaluation = 'مقبول - يحتاج إلى تحسين في الدراسة والحضور';
+      } else {
+        evaluation = 'ضعيف - يحتاج إلى متابعة وتحسين كبير';
+      }
+
+      return StudentReport(
+        student: student,
+        attendanceStats: attendanceStats,
+        gradeStats: gradeStats,
+        recentAttendance: latestAttendance,
+        recentGrades: latestGrades,
+        overallScore: overallScore,
+        evaluation: evaluation,
+      );
+    } catch (e) {
+      throw Exception('فشل في إنشاء تقرير الطالب: $e');
+    }
+  }
+
+  // الحصول على جميع تقارير الطلاب
+  static Future<List<StudentReport>> generateAllStudentReports() async {
+    try {
+      await Future.delayed(const Duration(milliseconds: 800));
+
+      final students = await getAllStudents();
+      final reports = <StudentReport>[];
+
+      for (var student in students) {
+        try {
+          final report = await generateStudentReport(student.id);
+          reports.add(report);
+        } catch (e) {
+          // تخطي الطلاب الذين لا يمكن إنشاء تقاريرهم
+          continue;
+        }
+      }
+
+      return reports;
+    } catch (e) {
+      throw Exception('فشل في إنشاء تقارير الطلاب: $e');
     }
   }
 }

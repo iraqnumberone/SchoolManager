@@ -144,9 +144,8 @@ class Grade {
     return date.isAfter(weekAgo);
   }
 
-  // الحصول على معلومات مختصرة عن الدرجة
   String get shortInfo {
-    return '${subject}: ${score.toStringAsFixed(1)}/$maxScore (${percentage.toStringAsFixed(1)}%)';
+    return '$subject: ${score.toStringAsFixed(1)}/$maxScore (${percentage.toStringAsFixed(1)}%)';
   }
 
   @override

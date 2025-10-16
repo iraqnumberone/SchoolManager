@@ -4,6 +4,8 @@ import 'package:school_app/core/app_config.dart';
 import 'package:school_app/features/school/services/school_service.dart';
 import 'package:school_app/school_management/pages/schools_list_page.dart';
 import 'package:school_app/features/students/pages/students_list_page.dart';
+import 'package:school_app/reports/pages/reports_page.dart';
+import 'package:school_app/attendance_management/pages/attendance_grades_page.dart';
 
 class SmartTeacherHomePage extends StatefulWidget {
   const SmartTeacherHomePage({super.key});
@@ -40,11 +42,6 @@ class _SmartTeacherHomePageState extends State<SmartTeacherHomePage>
       _schoolStats = stats;
       _isLoading = false;
     });
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
   }
 
   @override
@@ -566,9 +563,10 @@ class _SmartTeacherHomePageState extends State<SmartTeacherHomePage>
                   }),
                   _buildDrawerItem(
                     Icons.check_circle_outline,
-                    'الحضور والغياب',
+                    'الحضور والدرجات',
                     () {
                       Navigator.of(context).pop();
+                      _navigateToAttendanceGradesPage();
                     },
                   ),
                   _buildDrawerItem(
@@ -727,9 +725,9 @@ class _SmartTeacherHomePageState extends State<SmartTeacherHomePage>
                 color: AppConfig.infoColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(AppConfig.borderRadius / 2),
               ),
-              child: const Icon(Icons.more_horiz, size: 20),
+              child: const Icon(Icons.check_circle, size: 20),
             ),
-            label: 'المزيد',
+            label: 'الحضور و الدرجات',
           ),
         ],
         onTap: (index) {
@@ -756,8 +754,8 @@ class _SmartTeacherHomePageState extends State<SmartTeacherHomePage>
               _navigateToReportsPage();
               break;
             case 4:
-              // فتح القائمة الجانبية للخيارات الأخرى
-              Scaffold.of(context).openDrawer();
+              // الحضور والدرجات - عرض رسالة مؤقتة أو فتح القائمة الجانبية
+              _showAttendanceMessage();
               break;
           }
         },
@@ -775,9 +773,7 @@ class _SmartTeacherHomePageState extends State<SmartTeacherHomePage>
     // الانتقال إلى صفحة إدارة الطلاب وقائمة المدارس
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => const StudentsListPage(),
-      ),
+      MaterialPageRoute(builder: (context) => const StudentsListPage()),
     );
   }
 
@@ -785,17 +781,16 @@ class _SmartTeacherHomePageState extends State<SmartTeacherHomePage>
     // الانتقال إلى صفحة إدارة المدرسة وقائمة المدارس
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => const SchoolsListPage(),
-      ),
+      MaterialPageRoute(builder: (context) => const SchoolsListPage()),
     );
   }
 
   void _navigateToReportsPage() {
     // الانتقال إلى صفحة التقارير
-    _showSuccessMessage('جاري التنقل إلى التقارير...');
-    // هنا يمكن إضافة منطق الانتقال إلى صفحة التقارير
-    // Navigator.push(context, MaterialPageRoute(builder: (context) => ReportsPage()));
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const ReportsPage()),
+    );
   }
 
   void _showSuccessMessage(String message) {
@@ -816,5 +811,18 @@ class _SmartTeacherHomePageState extends State<SmartTeacherHomePage>
         ),
       ),
     );
+  }
+
+  void _navigateToAttendanceGradesPage() {
+    // الانتقال إلى صفحة الحضور والدرجات
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const AttendanceGradesPage()),
+    );
+  }
+
+  void _showAttendanceMessage() {
+    // الانتقال إلى صفحة الحضور والدرجات
+    _navigateToAttendanceGradesPage();
   }
 }

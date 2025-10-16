@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:school_app/core/app_config.dart';
 import 'package:school_app/student_management/models/student.dart';
@@ -13,11 +12,12 @@ class AttendancePage extends StatefulWidget {
   State<AttendancePage> createState() => _AttendancePageState();
 }
 
-class _AttendancePageState extends State<AttendancePage> with TickerProviderStateMixin {
+class _AttendancePageState extends State<AttendancePage>
+    with TickerProviderStateMixin {
   List<Student> _students = [];
-  Map<String, String> _attendanceStatus = {};
+  final Map<String, String> _attendanceStatus = {};
   bool _isLoading = true;
-  String _selectedClass = 'الصف الأول أ';
+  final String _selectedClass = 'الصف الأول أ';
   int _presentCount = 0;
   int _absentCount = 0;
   int _excusedCount = 0;
@@ -47,11 +47,17 @@ class _AttendancePageState extends State<AttendancePage> with TickerProviderStat
     // تأثير تكبير زر الحفظ
     _saveButtonScale = TweenSequence<double>([
       TweenSequenceItem(
-        tween: Tween<double>(begin: 1.0, end: 1.1).chain(CurveTween(curve: Curves.easeOut)),
+        tween: Tween<double>(
+          begin: 1.0,
+          end: 1.1,
+        ).chain(CurveTween(curve: Curves.easeOut)),
         weight: 50,
       ),
       TweenSequenceItem(
-        tween: Tween<double>(begin: 1.1, end: 1.0).chain(CurveTween(curve: Curves.elasticOut)),
+        tween: Tween<double>(
+          begin: 1.1,
+          end: 1.0,
+        ).chain(CurveTween(curve: Curves.elasticOut)),
         weight: 50,
       ),
     ]).animate(_saveButtonController);
@@ -60,10 +66,7 @@ class _AttendancePageState extends State<AttendancePage> with TickerProviderStat
     _statsSlide = Tween<double>(
       begin: -50.0,
       end: 0.0,
-    ).animate(CurvedAnimation(
-      parent: _statsController,
-      curve: Curves.easeOut,
-    ));
+    ).animate(CurvedAnimation(parent: _statsController, curve: Curves.easeOut));
 
     _loadStudents();
   }
@@ -98,10 +101,18 @@ class _AttendancePageState extends State<AttendancePage> with TickerProviderStat
   }
 
   void _calculateStats() {
-    _presentCount = _attendanceStatus.values.where((status) => status == AppConfig.attendancePresent).length;
-    _absentCount = _attendanceStatus.values.where((status) => status == AppConfig.attendanceAbsent).length;
-    _excusedCount = _attendanceStatus.values.where((status) => status == AppConfig.attendanceExcused).length;
-    _lateCount = _attendanceStatus.values.where((status) => status == AppConfig.attendanceLate).length;
+    _presentCount = _attendanceStatus.values
+        .where((status) => status == AppConfig.attendancePresent)
+        .length;
+    _absentCount = _attendanceStatus.values
+        .where((status) => status == AppConfig.attendanceAbsent)
+        .length;
+    _excusedCount = _attendanceStatus.values
+        .where((status) => status == AppConfig.attendanceExcused)
+        .length;
+    _lateCount = _attendanceStatus.values
+        .where((status) => status == AppConfig.attendanceLate)
+        .length;
   }
 
   void _updateAttendanceStatus(String studentId, String status) {
@@ -198,7 +209,9 @@ class _AttendancePageState extends State<AttendancePage> with TickerProviderStat
 
     // العودة إلى لوحة التحكم بعد فترة قصيرة
     Future.delayed(const Duration(seconds: 2), () {
-      Navigator.of(context).pop();
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
     });
   }
 
@@ -272,13 +285,29 @@ class _AttendancePageState extends State<AttendancePage> with TickerProviderStat
                     ),
                     child: Row(
                       children: [
-                        _buildStatCard('الحاضرون', _presentCount.toString(), AppConfig.presentColor),
+                        _buildStatCard(
+                          'الحاضرون',
+                          _presentCount.toString(),
+                          AppConfig.presentColor,
+                        ),
                         const SizedBox(width: 8),
-                        _buildStatCard('الغائبون', _absentCount.toString(), AppConfig.absentColor),
+                        _buildStatCard(
+                          'الغائبون',
+                          _absentCount.toString(),
+                          AppConfig.absentColor,
+                        ),
                         const SizedBox(width: 8),
-                        _buildStatCard('المجازون', _excusedCount.toString(), AppConfig.excusedColor),
+                        _buildStatCard(
+                          'المجازون',
+                          _excusedCount.toString(),
+                          AppConfig.excusedColor,
+                        ),
                         const SizedBox(width: 8),
-                        _buildStatCard('المتأخرون', _lateCount.toString(), AppConfig.lateColor),
+                        _buildStatCard(
+                          'المتأخرون',
+                          _lateCount.toString(),
+                          AppConfig.lateColor,
+                        ),
                       ],
                     ),
                   ),
@@ -299,7 +328,9 @@ class _AttendancePageState extends State<AttendancePage> with TickerProviderStat
                     itemCount: _students.length,
                     itemBuilder: (context, index) {
                       final student = _students[index];
-                      final status = _attendanceStatus[student.id] ?? AppConfig.attendancePresent;
+                      final status =
+                          _attendanceStatus[student.id] ??
+                          AppConfig.attendancePresent;
 
                       return _buildStudentAttendanceCard(student, status);
                     },
@@ -335,9 +366,13 @@ class _AttendancePageState extends State<AttendancePage> with TickerProviderStat
                         vertical: AppConfig.spacingLG,
                       ),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(AppConfig.borderRadius),
+                        borderRadius: BorderRadius.circular(
+                          AppConfig.borderRadius,
+                        ),
                       ),
-                      shadowColor: AppConfig.secondaryColor.withValues(alpha: 0.3),
+                      shadowColor: AppConfig.secondaryColor.withValues(
+                        alpha: 0.3,
+                      ),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -433,7 +468,9 @@ class _AttendancePageState extends State<AttendancePage> with TickerProviderStat
                 // صورة الطالب
                 CircleAvatar(
                   radius: 25,
-                  backgroundColor: AppConfig.primaryColor.withValues(alpha: 0.1),
+                  backgroundColor: AppConfig.primaryColor.withValues(
+                    alpha: 0.1,
+                  ),
                   child: Text(
                     student.initials,
                     style: GoogleFonts.cairo(
@@ -479,7 +516,9 @@ class _AttendancePageState extends State<AttendancePage> with TickerProviderStat
                   ),
                   decoration: BoxDecoration(
                     color: _getStatusColor(status).withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(AppConfig.borderRadius / 2),
+                    borderRadius: BorderRadius.circular(
+                      AppConfig.borderRadius / 2,
+                    ),
                     border: Border.all(
                       color: _getStatusColor(status).withValues(alpha: 0.3),
                       width: 1,
@@ -491,10 +530,10 @@ class _AttendancePageState extends State<AttendancePage> with TickerProviderStat
                         status == AppConfig.attendancePresent
                             ? Icons.check_circle
                             : status == AppConfig.attendanceAbsent
-                                ? Icons.cancel
-                                : status == AppConfig.attendanceExcused
-                                    ? Icons.info
-                                    : Icons.schedule,
+                            ? Icons.cancel
+                            : status == AppConfig.attendanceExcused
+                            ? Icons.info
+                            : Icons.schedule,
                         color: _getStatusColor(status),
                         size: 16,
                       ),
@@ -522,7 +561,9 @@ class _AttendancePageState extends State<AttendancePage> with TickerProviderStat
     showModalBottomSheet(
       context: context,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppConfig.borderRadius)),
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(AppConfig.borderRadius),
+        ),
       ),
       builder: (context) {
         return Container(
@@ -547,7 +588,10 @@ class _AttendancePageState extends State<AttendancePage> with TickerProviderStat
                 AppConfig.presentColor,
                 Icons.check_circle,
                 () {
-                  _updateAttendanceStatus(student.id, AppConfig.attendancePresent);
+                  _updateAttendanceStatus(
+                    student.id,
+                    AppConfig.attendancePresent,
+                  );
                   Navigator.of(context).pop();
                 },
                 student.id,
@@ -559,7 +603,10 @@ class _AttendancePageState extends State<AttendancePage> with TickerProviderStat
                 AppConfig.absentColor,
                 Icons.cancel,
                 () {
-                  _updateAttendanceStatus(student.id, AppConfig.attendanceAbsent);
+                  _updateAttendanceStatus(
+                    student.id,
+                    AppConfig.attendanceAbsent,
+                  );
                   Navigator.of(context).pop();
                 },
                 student.id,
@@ -571,7 +618,10 @@ class _AttendancePageState extends State<AttendancePage> with TickerProviderStat
                 AppConfig.excusedColor,
                 Icons.info,
                 () {
-                  _updateAttendanceStatus(student.id, AppConfig.attendanceExcused);
+                  _updateAttendanceStatus(
+                    student.id,
+                    AppConfig.attendanceExcused,
+                  );
                   Navigator.of(context).pop();
                 },
                 student.id,
@@ -595,7 +645,14 @@ class _AttendancePageState extends State<AttendancePage> with TickerProviderStat
     );
   }
 
-  Widget _buildStatusOption(String label, String status, Color color, IconData icon, VoidCallback onTap, String studentId) {
+  Widget _buildStatusOption(
+    String label,
+    String status,
+    Color color,
+    IconData icon,
+    VoidCallback onTap,
+    String studentId,
+  ) {
     return Container(
       margin: const EdgeInsets.only(bottom: AppConfig.spacingSM),
       child: Material(

@@ -1,4 +1,3 @@
-import 'package:school_app/core/app_config.dart';
 import 'package:school_app/school_management/models/school.dart';
 import 'package:school_app/school_management/models/school_stage.dart';
 import 'package:school_app/school_management/models/class_group.dart';

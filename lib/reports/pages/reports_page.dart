@@ -9,7 +9,8 @@ class ReportsPage extends StatefulWidget {
   State<ReportsPage> createState() => _ReportsPageState();
 }
 
-class _ReportsPageState extends State<ReportsPage> with TickerProviderStateMixin {
+class _ReportsPageState extends State<ReportsPage>
+    with TickerProviderStateMixin {
   String _selectedReportType = 'تقرير الأداء الشهري';
   String _selectedClass = 'الكل';
   String _selectedPeriod = 'الشهر الحالي';
@@ -41,23 +42,25 @@ class _ReportsPageState extends State<ReportsPage> with TickerProviderStateMixin
     // تأثير تكبير زر الإنشاء
     _generateButtonScale = TweenSequence<double>([
       TweenSequenceItem(
-        tween: Tween<double>(begin: 1.0, end: 1.05).chain(CurveTween(curve: Curves.easeOut)),
+        tween: Tween<double>(
+          begin: 1.0,
+          end: 1.05,
+        ).chain(CurveTween(curve: Curves.easeOut)),
         weight: 50,
       ),
       TweenSequenceItem(
-        tween: Tween<double>(begin: 1.05, end: 1.0).chain(CurveTween(curve: Curves.elasticOut)),
+        tween: Tween<double>(
+          begin: 1.05,
+          end: 1.0,
+        ).chain(CurveTween(curve: Curves.elasticOut)),
         weight: 50,
       ),
     ]).animate(_generateButtonController);
 
     // تأثير انزلاق المعاينة
-    _previewSlide = Tween<double>(
-      begin: 50.0,
-      end: 0.0,
-    ).animate(CurvedAnimation(
-      parent: _previewController,
-      curve: Curves.easeOut,
-    ));
+    _previewSlide = Tween<double>(begin: 50.0, end: 0.0).animate(
+      CurvedAnimation(parent: _previewController, curve: Curves.easeOut),
+    );
 
     // بدء تأثير المعاينة
     _previewController.forward();
@@ -184,17 +187,14 @@ class _ReportsPageState extends State<ReportsPage> with TickerProviderStateMixin
                   _buildRadioOption(
                     'تقرير الأداء الشهري',
                     _selectedReportType == 'تقرير الأداء الشهري',
-                    () => setState(() => _selectedReportType = 'تقرير الأداء الشهري'),
                   ),
                   _buildRadioOption(
-                    'تقرير الحضور والغياب',
-                    _selectedReportType == 'تقرير الحضور والغياب',
-                    () => setState(() => _selectedReportType = 'تقرير الحضور والغياب'),
+                    'تقرير الحضور والدرجات',
+                    _selectedReportType == 'تقرير الحضور والدرجات',
                   ),
                   _buildRadioOption(
                     'تقرير الدرجات التفصيلي',
                     _selectedReportType == 'تقرير الدرجات التفصيلي',
-                    () => setState(() => _selectedReportType = 'تقرير الدرجات التفصيلي'),
                   ),
                 ],
               ),
@@ -221,7 +221,12 @@ class _ReportsPageState extends State<ReportsPage> with TickerProviderStateMixin
                   _buildDropdownOption(
                     'الفترة الزمنية',
                     _selectedPeriod,
-                    ['الشهر الحالي', 'الشهر الماضي', 'الفصل الحالي', 'السنة الحالية'],
+                    [
+                      'الشهر الحالي',
+                      'الشهر الماضي',
+                      'الفصل الحالي',
+                      'السنة الحالية',
+                    ],
                     (value) => setState(() => _selectedPeriod = value!),
                   ),
                 ],
@@ -270,8 +275,13 @@ class _ReportsPageState extends State<ReportsPage> with TickerProviderStateMixin
                         height: 200,
                         decoration: BoxDecoration(
                           color: AppConfig.backgroundColor,
-                          borderRadius: BorderRadius.circular(AppConfig.borderRadius / 2),
-                          border: Border.all(color: AppConfig.borderColor, width: 1),
+                          borderRadius: BorderRadius.circular(
+                            AppConfig.borderRadius / 2,
+                          ),
+                          border: Border.all(
+                            color: AppConfig.borderColor,
+                            width: 1,
+                          ),
                         ),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -326,9 +336,13 @@ class _ReportsPageState extends State<ReportsPage> with TickerProviderStateMixin
                         vertical: AppConfig.spacingLG,
                       ),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(AppConfig.borderRadius),
+                        borderRadius: BorderRadius.circular(
+                          AppConfig.borderRadius,
+                        ),
                       ),
-                      shadowColor: AppConfig.secondaryColor.withValues(alpha: 0.3),
+                      shadowColor: AppConfig.secondaryColor.withValues(
+                        alpha: 0.3,
+                      ),
                     ),
                     child: _isGenerating
                         ? Row(
@@ -339,7 +353,9 @@ class _ReportsPageState extends State<ReportsPage> with TickerProviderStateMixin
                                 height: 20,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    Colors.white,
+                                  ),
                                 ),
                               ),
                               const SizedBox(width: 12),
@@ -382,15 +398,16 @@ class _ReportsPageState extends State<ReportsPage> with TickerProviderStateMixin
                       // حفظ كمسودة
                     },
                     icon: const Icon(Icons.save_outlined),
-                    label: Text(
-                      'حفظ كمسودة',
-                      style: GoogleFonts.cairo(),
-                    ),
+                    label: Text('حفظ كمسودة', style: GoogleFonts.cairo()),
                     style: OutlinedButton.styleFrom(
                       side: BorderSide(color: AppConfig.borderColor),
-                      padding: const EdgeInsets.symmetric(vertical: AppConfig.spacingMD),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: AppConfig.spacingMD,
+                      ),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(AppConfig.borderRadius),
+                        borderRadius: BorderRadius.circular(
+                          AppConfig.borderRadius,
+                        ),
                       ),
                     ),
                   ),
@@ -404,15 +421,16 @@ class _ReportsPageState extends State<ReportsPage> with TickerProviderStateMixin
                       // مشاركة الإعدادات
                     },
                     icon: const Icon(Icons.share_outlined),
-                    label: Text(
-                      'مشاركة',
-                      style: GoogleFonts.cairo(),
-                    ),
+                    label: Text('مشاركة', style: GoogleFonts.cairo()),
                     style: OutlinedButton.styleFrom(
                       side: BorderSide(color: AppConfig.borderColor),
-                      padding: const EdgeInsets.symmetric(vertical: AppConfig.spacingMD),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: AppConfig.spacingMD,
+                      ),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(AppConfig.borderRadius),
+                        borderRadius: BorderRadius.circular(
+                          AppConfig.borderRadius,
+                        ),
                       ),
                     ),
                   ),
@@ -444,10 +462,7 @@ class _ReportsPageState extends State<ReportsPage> with TickerProviderStateMixin
             offset: const Offset(0, 2),
           ),
         ],
-        border: Border.all(
-          color: color.withValues(alpha: 0.1),
-          width: 1,
-        ),
+        border: Border.all(color: color.withValues(alpha: 0.1), width: 1),
       ),
       child: Padding(
         padding: const EdgeInsets.all(AppConfig.spacingLG),
@@ -460,7 +475,9 @@ class _ReportsPageState extends State<ReportsPage> with TickerProviderStateMixin
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
                     color: color.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(AppConfig.borderRadius / 2),
+                    borderRadius: BorderRadius.circular(
+                      AppConfig.borderRadius / 2,
+                    ),
                   ),
                   child: Icon(icon, color: color, size: 20),
                 ),
@@ -485,38 +502,59 @@ class _ReportsPageState extends State<ReportsPage> with TickerProviderStateMixin
     );
   }
 
-  Widget _buildRadioOption(String title, bool isSelected, VoidCallback onTap) {
+  Widget _buildRadioOption(String title, bool isSelected) {
     return Container(
       margin: const EdgeInsets.only(bottom: AppConfig.spacingSM),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: onTap,
           borderRadius: BorderRadius.circular(AppConfig.borderRadius / 2),
+          onTap: () {
+            setState(() => _selectedReportType = title);
+          },
           child: Container(
             padding: const EdgeInsets.all(AppConfig.spacingMD),
             decoration: BoxDecoration(
-              color: isSelected ? AppConfig.primaryColor.withValues(alpha: 0.05) : Colors.transparent,
+              color: isSelected
+                  ? AppConfig.primaryColor.withValues(alpha: 0.05)
+                  : Colors.transparent,
               borderRadius: BorderRadius.circular(AppConfig.borderRadius / 2),
               border: Border.all(
-                color: isSelected ? AppConfig.primaryColor.withValues(alpha: 0.3) : AppConfig.borderColor,
+                color: isSelected
+                    ? AppConfig.primaryColor.withValues(alpha: 0.3)
+                    : AppConfig.borderColor,
                 width: 1,
               ),
             ),
             child: Row(
               children: [
-                Radio<String>(
-                  value: title,
-                  groupValue: isSelected ? title : '',
-                  onChanged: (value) => onTap(),
-                  activeColor: AppConfig.primaryColor,
+                Container(
+                  width: 20,
+                  height: 20,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: isSelected
+                          ? AppConfig.primaryColor
+                          : AppConfig.borderColor,
+                      width: 2,
+                    ),
+                    color: isSelected
+                        ? AppConfig.primaryColor
+                        : Colors.transparent,
+                  ),
+                  child: isSelected
+                      ? const Icon(Icons.check, size: 12, color: Colors.white)
+                      : null,
                 ),
                 const SizedBox(width: 12),
                 Text(
                   title,
                   style: GoogleFonts.cairo(
                     fontSize: AppConfig.fontSizeMedium,
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                    fontWeight: isSelected
+                        ? FontWeight.w600
+                        : FontWeight.normal,
                     color: AppConfig.textPrimaryColor,
                   ),
                 ),
@@ -528,7 +566,12 @@ class _ReportsPageState extends State<ReportsPage> with TickerProviderStateMixin
     );
   }
 
-  Widget _buildDropdownOption(String label, String value, List<String> options, ValueChanged<String?> onChanged) {
+  Widget _buildDropdownOption(
+    String label,
+    String value,
+    List<String> options,
+    ValueChanged<String?> onChanged,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -567,14 +610,20 @@ class _ReportsPageState extends State<ReportsPage> with TickerProviderStateMixin
             ),
             underline: Container(),
             isExpanded: true,
-            padding: const EdgeInsets.symmetric(horizontal: AppConfig.spacingMD),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppConfig.spacingMD,
+            ),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildCheckboxOption(String label, bool value, ValueChanged<bool?> onChanged) {
+  Widget _buildCheckboxOption(
+    String label,
+    bool value,
+    ValueChanged<bool?> onChanged,
+  ) {
     return Container(
       margin: const EdgeInsets.only(bottom: AppConfig.spacingSM),
       child: Row(

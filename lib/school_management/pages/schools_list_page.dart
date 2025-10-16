@@ -95,7 +95,10 @@ class _SchoolsListPageState extends State<SchoolsListPage> {
                   color: AppConfig.textSecondaryColor,
                   fontSize: AppConfig.fontSizeMedium,
                 ),
-                prefixIcon: const Icon(Icons.search, color: AppConfig.textSecondaryColor),
+                prefixIcon: const Icon(
+                  Icons.search,
+                  color: AppConfig.textSecondaryColor,
+                ),
                 filled: true,
                 fillColor: AppConfig.backgroundColor,
                 border: OutlineInputBorder(
@@ -122,12 +125,12 @@ class _SchoolsListPageState extends State<SchoolsListPage> {
           // قائمة المدارس
           Expanded(
             child: _isLoading
-              ? const Center(
-                  child: CircularProgressIndicator(
-                    color: AppConfig.primaryColor,
-                  ),
-                )
-              : _schools.isEmpty
+                ? const Center(
+                    child: CircularProgressIndicator(
+                      color: AppConfig.primaryColor,
+                    ),
+                  )
+                : _schools.isEmpty
                 ? _buildEmptyState()
                 : ListView.builder(
                     padding: const EdgeInsets.all(AppConfig.spacingMD),
@@ -160,30 +163,20 @@ class _SchoolsListPageState extends State<SchoolsListPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.school_outlined,
-            size: 80,
-            color: Colors.grey[400],
-          ),
+          Icon(Icons.school_outlined, size: 80, color: Colors.grey[400]),
           const SizedBox(height: 16),
           Text(
             _searchQuery.isEmpty
                 ? 'لا توجد مدارس مضافة بعد'
                 : 'لا توجد نتائج للبحث',
-            style: GoogleFonts.cairo(
-              fontSize: 18,
-              color: Colors.grey[600],
-            ),
+            style: GoogleFonts.cairo(fontSize: 18, color: Colors.grey[600]),
           ),
           const SizedBox(height: 8),
           Text(
             _searchQuery.isEmpty
                 ? 'اضغط على زر الإضافة لبدء إضافة مدرسة جديدة'
                 : 'جرب كلمات بحث مختلفة',
-            style: GoogleFonts.cairo(
-              fontSize: 14,
-              color: Colors.grey[500],
-            ),
+            style: GoogleFonts.cairo(fontSize: 14, color: Colors.grey[500]),
             textAlign: TextAlign.center,
           ),
         ],
@@ -208,10 +201,7 @@ class _SchoolsListPageState extends State<SchoolsListPage> {
                     color: AppConfig.primaryColor.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(
-                    Icons.school,
-                    color: AppConfig.primaryColor,
-                  ),
+                  child: Icon(Icons.school, color: AppConfig.primaryColor),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -339,10 +329,7 @@ class _SchoolsListPageState extends State<SchoolsListPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(
-          'تأكيد الحذف',
-          style: GoogleFonts.cairo(),
-        ),
+        title: Text('تأكيد الحذف', style: GoogleFonts.cairo()),
         content: Text(
           'هل أنت متأكد من حذف مدرسة "${school.name}"؟',
           style: GoogleFonts.cairo(),
@@ -350,48 +337,42 @@ class _SchoolsListPageState extends State<SchoolsListPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: Text(
-              'إلغاء',
-              style: GoogleFonts.cairo(),
-            ),
+            child: Text('إلغاء', style: GoogleFonts.cairo()),
           ),
           ElevatedButton(
             onPressed: () async {
-              Navigator.of(context).pop();
+              final currentContext = context;
+              Navigator.of(currentContext).pop();
               final success = await SchoolService.deleteSchool(school.id);
-              if (!mounted) return;
-              if (success) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      'تم حذف المدرسة بنجاح',
-                      style: GoogleFonts.cairo(),
+              if (mounted && currentContext.mounted) {
+                if (success) {
+                  ScaffoldMessenger.of(currentContext).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'تم حذف المدرسة بنجاح',
+                        style: GoogleFonts.cairo(),
+                      ),
+                      backgroundColor: AppConfig.successColor,
                     ),
-                    backgroundColor: AppConfig.successColor,
-                  ),
-                );
-                _loadSchools();
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      'فشل في حذف المدرسة',
-                      style: GoogleFonts.cairo(),
+                  );
+                  _loadSchools();
+                } else {
+                  ScaffoldMessenger.of(currentContext).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'فشل في حذف المدرسة',
+                        style: GoogleFonts.cairo(),
+                      ),
+                      backgroundColor: AppConfig.errorColor,
                     ),
-                    backgroundColor: AppConfig.errorColor,
-                  ),
-                );
+                  );
+                }
               }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppConfig.errorColor,
             ),
-            child: Text(
-              'حذف',
-              style: GoogleFonts.cairo(
-                color: Colors.white,
-              ),
-            ),
+            child: Text('حذف', style: GoogleFonts.cairo(color: Colors.white)),
           ),
         ],
       ),
@@ -452,10 +433,14 @@ class _SimpleAddSchoolDialogState extends State<SimpleAddSchoolDialog> {
                     fontSize: AppConfig.fontSizeMedium,
                   ),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppConfig.borderRadius / 2),
+                    borderRadius: BorderRadius.circular(
+                      AppConfig.borderRadius / 2,
+                    ),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppConfig.borderRadius / 2),
+                    borderRadius: BorderRadius.circular(
+                      AppConfig.borderRadius / 2,
+                    ),
                     borderSide: BorderSide(color: AppConfig.primaryColor),
                   ),
                 ),
@@ -472,7 +457,7 @@ class _SimpleAddSchoolDialogState extends State<SimpleAddSchoolDialog> {
               ),
               const SizedBox(height: AppConfig.spacingMD),
               DropdownButtonFormField<String>(
-                value: _selectedEducationLevel,
+                initialValue: _selectedEducationLevel,
                 decoration: InputDecoration(
                   labelText: 'مرحلة الدراسة',
                   labelStyle: GoogleFonts.cairo(
@@ -480,10 +465,14 @@ class _SimpleAddSchoolDialogState extends State<SimpleAddSchoolDialog> {
                     fontSize: AppConfig.fontSizeMedium,
                   ),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppConfig.borderRadius / 2),
+                    borderRadius: BorderRadius.circular(
+                      AppConfig.borderRadius / 2,
+                    ),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppConfig.borderRadius / 2),
+                    borderRadius: BorderRadius.circular(
+                      AppConfig.borderRadius / 2,
+                    ),
                     borderSide: BorderSide(color: AppConfig.primaryColor),
                   ),
                 ),
@@ -492,10 +481,7 @@ class _SimpleAddSchoolDialogState extends State<SimpleAddSchoolDialog> {
                   color: AppConfig.textPrimaryColor,
                 ),
                 items: _educationLevels.map((level) {
-                  return DropdownMenuItem(
-                    value: level,
-                    child: Text(level),
-                  );
+                  return DropdownMenuItem(value: level, child: Text(level));
                 }).toList(),
                 onChanged: (value) {
                   setState(() {
@@ -513,10 +499,14 @@ class _SimpleAddSchoolDialogState extends State<SimpleAddSchoolDialog> {
                     fontSize: AppConfig.fontSizeMedium,
                   ),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppConfig.borderRadius / 2),
+                    borderRadius: BorderRadius.circular(
+                      AppConfig.borderRadius / 2,
+                    ),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppConfig.borderRadius / 2),
+                    borderRadius: BorderRadius.circular(
+                      AppConfig.borderRadius / 2,
+                    ),
                     borderSide: BorderSide(color: AppConfig.primaryColor),
                   ),
                 ),
@@ -541,10 +531,14 @@ class _SimpleAddSchoolDialogState extends State<SimpleAddSchoolDialog> {
                     fontSize: AppConfig.fontSizeMedium,
                   ),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppConfig.borderRadius / 2),
+                    borderRadius: BorderRadius.circular(
+                      AppConfig.borderRadius / 2,
+                    ),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppConfig.borderRadius / 2),
+                    borderRadius: BorderRadius.circular(
+                      AppConfig.borderRadius / 2,
+                    ),
                     borderSide: BorderSide(color: AppConfig.primaryColor),
                   ),
                 ),
@@ -639,53 +633,39 @@ class _SimpleAddSchoolDialogState extends State<SimpleAddSchoolDialog> {
     );
 
     final success = await SchoolService.addSchool(school);
-
     setState(() {
       _isLoading = false;
     });
 
-    if (success) {
-      Navigator.of(context).pop();
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'تم إضافة المدرسة بنجاح',
-            style: GoogleFonts.cairo(
-              color: Colors.white,
-              fontWeight: FontWeight.w600,
+    // تأجيل إغلاق الحوار لتجنب مشاكل السياق
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
+    });
+
+    // عرض رسالة النجاح أو الفشل في الصفحة الرئيسية
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'تم إضافة المدرسة بنجاح',
+              style: GoogleFonts.cairo(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            backgroundColor: AppConfig.successColor,
+            duration: const Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AppConfig.borderRadius),
             ),
           ),
-          backgroundColor: AppConfig.successColor,
-          duration: const Duration(seconds: 2),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppConfig.borderRadius),
-          ),
-        ),
-      );
-      // إعادة تحميل البيانات
-      context.findAncestorStateOfType<_SchoolsListPageState>()?._loadSchools();
-    } else {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'فشل في إضافة المدرسة',
-            style: GoogleFonts.cairo(
-              color: Colors.white,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          backgroundColor: AppConfig.errorColor,
-          duration: const Duration(seconds: 2),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppConfig.borderRadius),
-          ),
-        ),
-      );
-    }
+        );
+      }
+    });
   }
 }
 
@@ -716,7 +696,9 @@ class _SimpleEditSchoolDialogState extends State<SimpleEditSchoolDialog> {
     _nameController = TextEditingController(text: widget.school.name);
     _selectedEducationLevel = widget.school.educationLevel;
     _sectionController = TextEditingController(text: widget.school.section);
-    _studentCountController = TextEditingController(text: widget.school.studentCount.toString());
+    _studentCountController = TextEditingController(
+      text: widget.school.studentCount.toString(),
+    );
   }
 
   @override
@@ -753,10 +735,14 @@ class _SimpleEditSchoolDialogState extends State<SimpleEditSchoolDialog> {
                     fontSize: AppConfig.fontSizeMedium,
                   ),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppConfig.borderRadius / 2),
+                    borderRadius: BorderRadius.circular(
+                      AppConfig.borderRadius / 2,
+                    ),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppConfig.borderRadius / 2),
+                    borderRadius: BorderRadius.circular(
+                      AppConfig.borderRadius / 2,
+                    ),
                     borderSide: BorderSide(color: AppConfig.primaryColor),
                   ),
                 ),
@@ -773,7 +759,7 @@ class _SimpleEditSchoolDialogState extends State<SimpleEditSchoolDialog> {
               ),
               const SizedBox(height: AppConfig.spacingMD),
               DropdownButtonFormField<String>(
-                value: _selectedEducationLevel,
+                initialValue: _selectedEducationLevel,
                 decoration: InputDecoration(
                   labelText: 'مرحلة الدراسة',
                   labelStyle: GoogleFonts.cairo(
@@ -781,10 +767,14 @@ class _SimpleEditSchoolDialogState extends State<SimpleEditSchoolDialog> {
                     fontSize: AppConfig.fontSizeMedium,
                   ),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppConfig.borderRadius / 2),
+                    borderRadius: BorderRadius.circular(
+                      AppConfig.borderRadius / 2,
+                    ),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppConfig.borderRadius / 2),
+                    borderRadius: BorderRadius.circular(
+                      AppConfig.borderRadius / 2,
+                    ),
                     borderSide: BorderSide(color: AppConfig.primaryColor),
                   ),
                 ),
@@ -793,10 +783,7 @@ class _SimpleEditSchoolDialogState extends State<SimpleEditSchoolDialog> {
                   color: AppConfig.textPrimaryColor,
                 ),
                 items: _educationLevels.map((level) {
-                  return DropdownMenuItem(
-                    value: level,
-                    child: Text(level),
-                  );
+                  return DropdownMenuItem(value: level, child: Text(level));
                 }).toList(),
                 onChanged: (value) {
                   setState(() {
@@ -814,10 +801,14 @@ class _SimpleEditSchoolDialogState extends State<SimpleEditSchoolDialog> {
                     fontSize: AppConfig.fontSizeMedium,
                   ),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppConfig.borderRadius / 2),
+                    borderRadius: BorderRadius.circular(
+                      AppConfig.borderRadius / 2,
+                    ),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppConfig.borderRadius / 2),
+                    borderRadius: BorderRadius.circular(
+                      AppConfig.borderRadius / 2,
+                    ),
                     borderSide: BorderSide(color: AppConfig.primaryColor),
                   ),
                 ),
@@ -842,10 +833,14 @@ class _SimpleEditSchoolDialogState extends State<SimpleEditSchoolDialog> {
                     fontSize: AppConfig.fontSizeMedium,
                   ),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppConfig.borderRadius / 2),
+                    borderRadius: BorderRadius.circular(
+                      AppConfig.borderRadius / 2,
+                    ),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppConfig.borderRadius / 2),
+                    borderRadius: BorderRadius.circular(
+                      AppConfig.borderRadius / 2,
+                    ),
                     borderSide: BorderSide(color: AppConfig.primaryColor),
                   ),
                 ),
@@ -934,52 +929,38 @@ class _SimpleEditSchoolDialogState extends State<SimpleEditSchoolDialog> {
     );
 
     final success = await SchoolService.updateSchool(updatedSchool);
-
     setState(() {
       _isLoading = false;
     });
 
-    if (success) {
-      Navigator.of(context).pop();
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'تم تحديث المدرسة بنجاح',
-            style: GoogleFonts.cairo(
-              color: Colors.white,
-              fontWeight: FontWeight.w600,
+    // تأجيل إغلاق الحوار لتجنب مشاكل السياق
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
+    });
+
+    // عرض رسالة النجاح أو الفشل في الصفحة الرئيسية
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'تم تحديث المدرسة بنجاح',
+              style: GoogleFonts.cairo(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            backgroundColor: AppConfig.successColor,
+            duration: const Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AppConfig.borderRadius),
             ),
           ),
-          backgroundColor: AppConfig.successColor,
-          duration: const Duration(seconds: 2),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppConfig.borderRadius),
-          ),
-        ),
-      );
-      // إعادة تحميل البيانات
-      context.findAncestorStateOfType<_SchoolsListPageState>()?._loadSchools();
-    } else {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'فشل في تحديث المدرسة',
-            style: GoogleFonts.cairo(
-              color: Colors.white,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          backgroundColor: AppConfig.errorColor,
-          duration: const Duration(seconds: 2),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppConfig.borderRadius),
-          ),
-        ),
-      );
-    }
+        );
+      }
+    });
   }
 }
