@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:school_app/core/app_config.dart';
+import 'package:school_app/attendance_management/pages/attendance_grades_system_page.dart';
 
 class AttendanceGradesPage extends StatefulWidget {
   const AttendanceGradesPage({super.key});
@@ -182,7 +183,11 @@ class _AttendanceGradesPageState extends State<AttendanceGradesPage>
                     // زر البدء
                     ElevatedButton.icon(
                       onPressed: () {
-                        _showComingSoonMessage();
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const AttendanceGradesSystemPage(),
+                          ),
+                        );
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppConfig.secondaryColor,
@@ -317,33 +322,6 @@ class _AttendanceGradesPageState extends State<AttendanceGradesPage>
             textAlign: TextAlign.center,
           ),
         ],
-      ),
-    );
-  }
-
-  void _showComingSoonMessage() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const Icon(Icons.construction, color: Colors.white),
-            const SizedBox(width: 12),
-            Text(
-              'النظام قيد التطوير - قريباً متاح بالكامل',
-              style: GoogleFonts.cairo(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-        backgroundColor: AppConfig.infoColor,
-        duration: const Duration(seconds: 3),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppConfig.borderRadius),
-        ),
-        behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.all(16),
       ),
     );
   }
