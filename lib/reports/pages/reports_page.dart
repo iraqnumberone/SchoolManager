@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:school_app/core/app_config.dart';
+import 'package:school_app/school_management/models/school.dart';
+import 'package:school_app/school_management/services/school_service.dart';
+import 'package:school_app/student_management/services/student_service.dart';
 
 class ReportsPage extends StatefulWidget {
   const ReportsPage({super.key});
@@ -9,14 +12,21 @@ class ReportsPage extends StatefulWidget {
   State<ReportsPage> createState() => _ReportsPageState();
 }
 
-class _ReportsPageState extends State<ReportsPage>
-    with TickerProviderStateMixin {
+class _ReportsPageState extends State<ReportsPage> with TickerProviderStateMixin {
+  final StudentService _studentService = StudentService();
   String _selectedReportType = 'تقرير الأداء الشهري';
   String _selectedClass = 'الكل';
   String _selectedPeriod = 'الشهر الحالي';
   bool _includeCharts = true;
   bool _includeDetails = true;
   bool _isGenerating = false;
+  bool _isDataLoading = true;
+  bool _isStudentsLoading = false;
+  List<School> _schools = [];
+  School? _selectedSchool;
+  List<Student> _availableStudents = [];
+  Set<String> _selectedStudentIds = {};
+  List<StudentReport> _latestReports = [];
 
   late AnimationController _generateButtonController;
   late AnimationController _previewController;
@@ -64,30 +74,67 @@ class _ReportsPageState extends State<ReportsPage>
 
     // بدء تأثير المعاينة
     _previewController.forward();
+
+    _loadInitialData();
   }
 
   Future<void> _generateReport() async {
+    if (_selectedSchool == null) {
+      _showStatusMessage(
+        'يرجى اختيار مدرسة أولاً',
+        AppConfig.warningColor,
+        Icons.info_outline,
+      );
+      return;
+    }
+
+    if (_selectedStudentIds.isEmpty) {
+      _showStatusMessage(
+        'اختر طالبًا واحدًا على الأقل لإنشاء التقرير',
+        AppConfig.warningColor,
+        Icons.info_outline,
+      );
+      return;
+    }
+
     setState(() {
       _isGenerating = true;
     });
 
     // تشغيل تأثير زر الإنشاء
-    await _generateButtonController.forward();
+    await _generateButtonController.forward(from: 0);
 
-    // محاكاة إنشاء التقرير
-    await Future.delayed(const Duration(seconds: 2));
+    try {
+      final reports = <StudentReport>[];
+      for (final studentId in _selectedStudentIds) {
+        final report = await StudentService().generateStudentReport(studentId);
+        reports.add(report);
+      }
 
-    setState(() {
-      _isGenerating = false;
-    });
+      setState(() {
+        _latestReports = reports;
+        _isGenerating = false;
+      });
 
-    // إظهار رسالة النجاح
-    if (mounted) {
-      _showSuccessMessage();
+      if (mounted) {
+        _showSuccessMessage(reports.length);
+      }
+    } catch (e) {
+      setState(() {
+        _isGenerating = false;
+      });
+
+      if (mounted) {
+        _showStatusMessage(
+          'تعذر إنشاء التقرير، حاول مرة أخرى',
+          AppConfig.errorColor,
+          Icons.error_outline,
+        );
+      }
     }
   }
 
-  void _showSuccessMessage() {
+  void _showSuccessMessage(int studentsCount) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
@@ -95,7 +142,7 @@ class _ReportsPageState extends State<ReportsPage>
             const Icon(Icons.check_circle, color: Colors.white),
             const SizedBox(width: 12),
             Text(
-              'تم إنشاء التقرير بنجاح',
+              'تم إنشاء التقرير لعدد $studentsCount من الطلاب',
               style: GoogleFonts.cairo(
                 color: Colors.white,
                 fontWeight: FontWeight.w600,
@@ -117,6 +164,127 @@ class _ReportsPageState extends State<ReportsPage>
             // الانتقال إلى عرض التقرير
           },
         ),
+      ),
+    );
+  }
+
+  Future<void> _loadInitialData() async {
+    setState(() {
+      _isDataLoading = true;
+      _isStudentsLoading = true;
+      _schools = [];
+      _selectedSchool = null;
+      _availableStudents = [];
+      _selectedStudentIds.clear();
+      _latestReports = [];
+    });
+
+    // Initialize demo data
+    await SchoolService.instance.initializeDemoData();
+    await StudentService().initializeDemoStudents();
+
+    // Get all schools
+    final schools = await SchoolService.instance.getSchools();
+    School? initialSchool;
+    if (schools.isNotEmpty) {
+      initialSchool = schools.first;
+    }
+
+    // Get students for the selected school
+    List<Student> students = [];
+    if (initialSchool != null) {
+      students = await StudentService().getStudentsBySchool(initialSchool.id);
+    }
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _schools = schools;
+      _selectedSchool = initialSchool;
+      _availableStudents = students;
+      _selectedStudentIds = students.map((student) => student.id).toSet();
+      _isStudentsLoading = false;
+      _isDataLoading = false;
+    });
+  }
+
+  Future<void> _onSchoolChanged(String? schoolId) async {
+    if (schoolId == null || _selectedSchool?.id == schoolId) {
+      return;
+    }
+
+    final selected = _schools.firstWhere(
+      (school) => school.id == schoolId,
+      orElse: () => _selectedSchool ?? _schools.first,
+    );
+
+    setState(() {
+      _selectedSchool = selected;
+      _isStudentsLoading = true;
+      _availableStudents = [];
+      _selectedStudentIds.clear();
+    });
+
+    final students = await _studentService.getStudentsBySchool(selected.id);
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _availableStudents = students;
+      _selectedStudentIds = students.map((student) => student.id).toSet();
+      _isStudentsLoading = false;
+    });
+  }
+
+  void _toggleStudentSelection(String studentId) {
+    setState(() {
+      if (_selectedStudentIds.contains(studentId)) {
+        _selectedStudentIds.remove(studentId);
+      } else {
+        _selectedStudentIds.add(studentId);
+      }
+    });
+  }
+
+  void _selectAllStudents() {
+    setState(() {
+      _selectedStudentIds = _availableStudents.map((student) => student.id).toSet();
+    });
+  }
+
+  void _clearSelectedStudents() {
+    setState(() {
+      _selectedStudentIds.clear();
+    });
+  }
+
+  void _showStatusMessage(String message, Color backgroundColor, IconData icon) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(icon, color: Colors.white),
+            const SizedBox(width: 12),
+            Text(
+              message,
+              style: GoogleFonts.cairo(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: backgroundColor,
+        duration: const Duration(seconds: 3),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppConfig.borderRadius),
+        ),
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
       ),
     );
   }
@@ -149,297 +317,487 @@ class _ReportsPageState extends State<ReportsPage>
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
-      body: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.all(AppConfig.spacingMD),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // عنوان الصفحة
-            Text(
-              'إنشاء تقرير أداء شامل',
-              style: GoogleFonts.cairo(
-                fontSize: AppConfig.fontSizeXXLarge,
-                fontWeight: FontWeight.bold,
-                color: AppConfig.textPrimaryColor,
+      body: _isDataLoading
+          ? const Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(AppConfig.primaryColor),
+              ),
+            )
+          : SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.all(AppConfig.spacingMD),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // عنوان الصفحة
+                  Text(
+                    'إنشاء تقرير أداء شامل',
+                    style: GoogleFonts.cairo(
+                      fontSize: AppConfig.fontSizeXXLarge,
+                      fontWeight: FontWeight.bold,
+                      color: AppConfig.textPrimaryColor,
+                    ),
+                  ),
+
+                  const SizedBox(height: AppConfig.spacingSM),
+
+                  Text(
+                    'اختر إعدادات التقرير وقم بإنشائه بسهولة',
+                    style: GoogleFonts.cairo(
+                      fontSize: AppConfig.fontSizeMedium,
+                      color: AppConfig.textSecondaryColor,
+                    ),
+                  ),
+
+                  const SizedBox(height: AppConfig.spacingXXL),
+
+                  _buildStudentSelectionSection(),
+
+                  const SizedBox(height: AppConfig.spacingLG),
+
+                  // نوع التقرير
+                  _buildSectionCard(
+                    title: 'نوع التقرير',
+                    icon: Icons.analytics_outlined,
+                    color: AppConfig.primaryColor,
+                    child: Column(
+                      children: [
+                        _buildRadioOption(
+                          'تقرير الأداء الشهري',
+                          _selectedReportType == 'تقرير الأداء الشهري',
+                        ),
+                        _buildRadioOption(
+                          'تقرير الحضور والدرجات',
+                          _selectedReportType == 'تقرير الحضور والدرجات',
+                        ),
+                        _buildRadioOption(
+                          'تقرير الدرجات التفصيلي',
+                          _selectedReportType == 'تقرير الدرجات التفصيلي',
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: AppConfig.spacingLG),
+
+                  // نطاق البيانات
+                  _buildSectionCard(
+                    title: 'نطاق البيانات',
+                    icon: Icons.date_range_outlined,
+                    color: AppConfig.secondaryColor,
+                    child: Column(
+                      children: [
+                        _buildDropdownOption(
+                          'الصف الدراسي',
+                          _selectedClass,
+                          ['الكل', 'الصف الأول أ', 'الصف الأول ب', 'الصف الثاني أ'],
+                          (value) => setState(() => _selectedClass = value!),
+                        ),
+
+                        const SizedBox(height: AppConfig.spacingMD),
+
+                        _buildDropdownOption(
+                          'الفترة الزمنية',
+                          _selectedPeriod,
+                          [
+                            'الشهر الحالي',
+                            'الشهر الماضي',
+                            'الفصل الحالي',
+                            'السنة الحالية',
+                          ],
+                          (value) => setState(() => _selectedPeriod = value!),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: AppConfig.spacingLG),
+
+                  // خيارات التقرير
+                  _buildSectionCard(
+                    title: 'خيارات التقرير',
+                    icon: Icons.settings_outlined,
+                    color: AppConfig.secondaryColor,
+                    child: Column(
+                      children: [
+                        _buildCheckboxOption(
+                          'تضمين الرسوم البيانية',
+                          _includeCharts,
+                          (value) => setState(() => _includeCharts = value!),
+                        ),
+
+                        _buildCheckboxOption(
+                          'تضمين التفاصيل الكاملة',
+                          _includeDetails,
+                          (value) => setState(() => _includeDetails = value!),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: AppConfig.spacingLG),
+
+                  // معاينة التقرير
+                  AnimatedBuilder(
+                    animation: _previewController,
+                    builder: (context, child) {
+                      return Transform.translate(
+                        offset: Offset(_previewSlide.value, 0),
+                        child: Opacity(
+                          opacity: _previewController.value,
+                          child: _buildSectionCard(
+                            title: 'معاينة التقرير',
+                            icon: Icons.preview_outlined,
+                            color: AppConfig.infoColor,
+                            child: _buildReportPreview(),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+
+                  const SizedBox(height: AppConfig.spacingXXL),
+
+                  // زر الإنشاء المتحرك
+                  AnimatedBuilder(
+                    animation: _generateButtonScale,
+                    builder: (context, child) {
+                      return Transform.scale(
+                        scale: _generateButtonScale.value,
+                        child: ElevatedButton(
+                          onPressed: _isGenerating ? null : _generateReport,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppConfig.secondaryColor,
+                            foregroundColor: Colors.white,
+                            elevation: AppConfig.buttonElevation,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: AppConfig.spacingXXL,
+                              vertical: AppConfig.spacingLG,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(
+                                AppConfig.borderRadius,
+                              ),
+                            ),
+                            shadowColor: AppConfig.secondaryColor.withValues(
+                              alpha: 0.3,
+                            ),
+                          ),
+                          child: _isGenerating
+                              ? Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        valueColor: AlwaysStoppedAnimation<Color>(
+                                          Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Text(
+                                      'جاري الإنشاء...',
+                                      style: GoogleFonts.cairo(
+                                        fontSize: AppConfig.fontSizeLarge,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                )
+                              : Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(Icons.analytics_outlined, size: 24),
+                                    const SizedBox(width: 12),
+                                    Text(
+                                      'إنشاء التقرير',
+                                      style: GoogleFonts.cairo(
+                                        fontSize: AppConfig.fontSizeLarge,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                        ),
+                      );
+                    },
+                  ),
+
+                  const SizedBox(height: AppConfig.spacingLG),
+
+                  // خيارات إضافية
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () {
+                            // حفظ كمسودة
+                          },
+                          icon: const Icon(Icons.save_outlined),
+                          label: Text('حفظ كمسودة', style: GoogleFonts.cairo()),
+                          style: OutlinedButton.styleFrom(
+                            side: BorderSide(color: AppConfig.borderColor),
+                            padding: const EdgeInsets.symmetric(
+                              vertical: AppConfig.spacingMD,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(
+                                AppConfig.borderRadius,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(width: AppConfig.spacingMD),
+
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () {
+                            // مشاركة الإعدادات
+                          },
+                          icon: const Icon(Icons.share_outlined),
+                          label: Text('مشاركة', style: GoogleFonts.cairo()),
+                          style: OutlinedButton.styleFrom(
+                            side: BorderSide(color: AppConfig.borderColor),
+                            padding: const EdgeInsets.symmetric(
+                              vertical: AppConfig.spacingMD,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(
+                                AppConfig.borderRadius,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: AppConfig.spacingXXL),
+                ],
               ),
             ),
+    );
+  }
 
-            const SizedBox(height: AppConfig.spacingSM),
-
+  Widget _buildStudentSelectionSection() {
+    return _buildSectionCard(
+      title: 'اختيار المدرسة والطلاب',
+      icon: Icons.school_outlined,
+      color: AppConfig.secondaryColor,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSchoolDropdown(),
+          const SizedBox(height: AppConfig.spacingMD),
+          if (_isStudentsLoading)
+            const Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(AppConfig.primaryColor),
+              ),
+            )
+          else if (_availableStudents.isEmpty)
             Text(
-              'اختر إعدادات التقرير وقم بإنشائه بسهولة',
+              'لا توجد طلاب مرتبطة بهذه المدرسة',
+              style: GoogleFonts.cairo(
+                fontSize: AppConfig.fontSizeMedium,
+                color: AppConfig.textSecondaryColor,
+              ),
+            )
+          else ...[
+            Align(
+              alignment: AlignmentDirectional.centerEnd,
+              child: Wrap(
+                spacing: AppConfig.spacingSM,
+                children: [
+                  TextButton(
+                    onPressed: _selectAllStudents,
+                    style: TextButton.styleFrom(
+                      foregroundColor: AppConfig.primaryColor,
+                    ),
+                    child: Text(
+                      'تحديد الكل',
+                      style: GoogleFonts.cairo(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: _clearSelectedStudents,
+                    style: TextButton.styleFrom(
+                      foregroundColor: AppConfig.textSecondaryColor,
+                    ),
+                    child: Text(
+                      'مسح التحديد',
+                      style: GoogleFonts.cairo(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: AppConfig.spacingSM),
+            Column(
+              children: _availableStudents
+                  .map((student) => _buildStudentSelectionItem(student))
+                  .toList(),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSchoolDropdown() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'اختر المدرسة',
+          style: GoogleFonts.cairo(
+            fontSize: AppConfig.fontSizeMedium,
+            fontWeight: FontWeight.w600,
+            color: AppConfig.textSecondaryColor,
+          ),
+        ),
+        const SizedBox(height: AppConfig.spacingSM),
+        Container(
+          decoration: BoxDecoration(
+            border: Border.all(color: AppConfig.borderColor, width: 1),
+            borderRadius: BorderRadius.circular(AppConfig.borderRadius / 2),
+          ),
+          child: DropdownButton<String>(
+            value: _selectedSchool?.id,
+            onChanged: _schools.isEmpty ? null : _onSchoolChanged,
+            items: _schools
+                .map(
+                  (school) => DropdownMenuItem(
+                    value: school.id,
+                    child: Text(
+                      school.name,
+                      style: GoogleFonts.cairo(
+                        fontSize: AppConfig.fontSizeMedium,
+                        color: AppConfig.textPrimaryColor,
+                      ),
+                    ),
+                  ),
+                )
+                .toList(),
+            style: GoogleFonts.cairo(
+              fontSize: AppConfig.fontSizeMedium,
+              color: AppConfig.textPrimaryColor,
+            ),
+            underline: Container(),
+            isExpanded: true,
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppConfig.spacingMD,
+            ),
+            hint: Text(
+              'اختر مدرسة',
               style: GoogleFonts.cairo(
                 fontSize: AppConfig.fontSizeMedium,
                 color: AppConfig.textSecondaryColor,
               ),
             ),
+          ),
+        ),
+      ],
+    );
+  }
 
-            const SizedBox(height: AppConfig.spacingXXL),
-
-            // نوع التقرير
-            _buildSectionCard(
-              title: 'نوع التقرير',
-              icon: Icons.analytics_outlined,
-              color: AppConfig.primaryColor,
-              child: Column(
-                children: [
-                  _buildRadioOption(
-                    'تقرير الأداء الشهري',
-                    _selectedReportType == 'تقرير الأداء الشهري',
-                  ),
-                  _buildRadioOption(
-                    'تقرير الحضور والدرجات',
-                    _selectedReportType == 'تقرير الحضور والدرجات',
-                  ),
-                  _buildRadioOption(
-                    'تقرير الدرجات التفصيلي',
-                    _selectedReportType == 'تقرير الدرجات التفصيلي',
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: AppConfig.spacingLG),
-
-            // نطاق البيانات
-            _buildSectionCard(
-              title: 'نطاق البيانات',
-              icon: Icons.date_range_outlined,
-              color: AppConfig.secondaryColor,
-              child: Column(
-                children: [
-                  _buildDropdownOption(
-                    'الصف الدراسي',
-                    _selectedClass,
-                    ['الكل', 'الصف الأول أ', 'الصف الأول ب', 'الصف الثاني أ'],
-                    (value) => setState(() => _selectedClass = value!),
-                  ),
-
-                  const SizedBox(height: AppConfig.spacingMD),
-
-                  _buildDropdownOption(
-                    'الفترة الزمنية',
-                    _selectedPeriod,
-                    [
-                      'الشهر الحالي',
-                      'الشهر الماضي',
-                      'الفصل الحالي',
-                      'السنة الحالية',
-                    ],
-                    (value) => setState(() => _selectedPeriod = value!),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: AppConfig.spacingLG),
-
-            // خيارات التقرير
-            _buildSectionCard(
-              title: 'خيارات التقرير',
-              icon: Icons.settings_outlined,
-              color: AppConfig.secondaryColor,
-              child: Column(
-                children: [
-                  _buildCheckboxOption(
-                    'تضمين الرسوم البيانية',
-                    _includeCharts,
-                    (value) => setState(() => _includeCharts = value!),
-                  ),
-
-                  _buildCheckboxOption(
-                    'تضمين التفاصيل الكاملة',
-                    _includeDetails,
-                    (value) => setState(() => _includeDetails = value!),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: AppConfig.spacingLG),
-
-            // معاينة التقرير
-            AnimatedBuilder(
-              animation: _previewController,
-              builder: (context, child) {
-                return Transform.translate(
-                  offset: Offset(_previewSlide.value, 0),
-                  child: Opacity(
-                    opacity: _previewController.value,
-                    child: _buildSectionCard(
-                      title: 'معاينة التقرير',
-                      icon: Icons.preview_outlined,
-                      color: AppConfig.infoColor,
-                      child: Container(
-                        height: 200,
-                        decoration: BoxDecoration(
-                          color: AppConfig.backgroundColor,
-                          borderRadius: BorderRadius.circular(
-                            AppConfig.borderRadius / 2,
-                          ),
-                          border: Border.all(
-                            color: AppConfig.borderColor,
-                            width: 1,
-                          ),
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.insert_chart_outlined,
-                              size: 48,
-                              color: AppConfig.textLightColor,
-                            ),
-                            const SizedBox(height: AppConfig.spacingMD),
-                            Text(
-                              'معاينة التقرير ستظهر هنا',
-                              style: GoogleFonts.cairo(
-                                fontSize: AppConfig.fontSizeMedium,
-                                color: AppConfig.textSecondaryColor,
-                              ),
-                            ),
-                            const SizedBox(height: AppConfig.spacingSM),
-                            Text(
-                              'سيتم عرض الرسوم البيانية والإحصائيات',
-                              style: GoogleFonts.cairo(
-                                fontSize: AppConfig.fontSizeSmall,
-                                color: AppConfig.textLightColor,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
-
-            const SizedBox(height: AppConfig.spacingXXL),
-
-            // زر الإنشاء المتحرك
-            AnimatedBuilder(
-              animation: _generateButtonScale,
-              builder: (context, child) {
-                return Transform.scale(
-                  scale: _generateButtonScale.value,
-                  child: ElevatedButton(
-                    onPressed: _isGenerating ? null : _generateReport,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppConfig.secondaryColor,
-                      foregroundColor: Colors.white,
-                      elevation: AppConfig.buttonElevation,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppConfig.spacingXXL,
-                        vertical: AppConfig.spacingLG,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(
-                          AppConfig.borderRadius,
-                        ),
-                      ),
-                      shadowColor: AppConfig.secondaryColor.withValues(
-                        alpha: 0.3,
-                      ),
-                    ),
-                    child: _isGenerating
-                        ? Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    Colors.white,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Text(
-                                'جاري الإنشاء...',
-                                style: GoogleFonts.cairo(
-                                  fontSize: AppConfig.fontSizeLarge,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          )
-                        : Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(Icons.analytics_outlined, size: 24),
-                              const SizedBox(width: 12),
-                              Text(
-                                'إنشاء التقرير',
-                                style: GoogleFonts.cairo(
-                                  fontSize: AppConfig.fontSizeLarge,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                  ),
-                );
-              },
-            ),
-
-            const SizedBox(height: AppConfig.spacingLG),
-
-            // خيارات إضافية
-            Row(
+  Widget _buildStudentSelectionItem(Student student) {
+    final isSelected = _selectedStudentIds.contains(student.id);
+    return Container(
+      margin: const EdgeInsets.only(bottom: AppConfig.spacingSM),
+      decoration: BoxDecoration(
+        color: AppConfig.surfaceColor,
+        borderRadius: BorderRadius.circular(AppConfig.borderRadius / 2),
+        border: Border.all(
+          color: isSelected
+              ? AppConfig.primaryColor.withValues(alpha: 0.3)
+              : AppConfig.borderColor,
+          width: 1,
+        ),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(AppConfig.borderRadius / 2),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(AppConfig.borderRadius / 2),
+          onTap: () => _toggleStudentSelection(student.id),
+          child: Padding(
+            padding: const EdgeInsets.all(AppConfig.spacingMD),
+            child: Row(
               children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () {
-                      // حفظ كمسودة
-                    },
-                    icon: const Icon(Icons.save_outlined),
-                    label: Text('حفظ كمسودة', style: GoogleFonts.cairo()),
-                    style: OutlinedButton.styleFrom(
-                      side: BorderSide(color: AppConfig.borderColor),
-                      padding: const EdgeInsets.symmetric(
-                        vertical: AppConfig.spacingMD,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(
-                          AppConfig.borderRadius,
-                        ),
-                      ),
+                Checkbox(
+                  value: isSelected,
+                  onChanged: (_) => _toggleStudentSelection(student.id),
+                  activeColor: AppConfig.primaryColor,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                CircleAvatar(
+                  radius: 22,
+                  backgroundColor:
+                      AppConfig.primaryColor.withValues(alpha: 0.1),
+                  foregroundColor: AppConfig.primaryColor,
+                  child: Text(
+                    student.initials,
+                    style: GoogleFonts.cairo(
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
-
-                const SizedBox(width: AppConfig.spacingMD),
-
+                const SizedBox(width: 12),
                 Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () {
-                      // مشاركة الإعدادات
-                    },
-                    icon: const Icon(Icons.share_outlined),
-                    label: Text('مشاركة', style: GoogleFonts.cairo()),
-                    style: OutlinedButton.styleFrom(
-                      side: BorderSide(color: AppConfig.borderColor),
-                      padding: const EdgeInsets.symmetric(
-                        vertical: AppConfig.spacingMD,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(
-                          AppConfig.borderRadius,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        student.fullName,
+                        style: GoogleFonts.cairo(
+                          fontSize: AppConfig.fontSizeLarge,
+                          fontWeight: FontWeight.w600,
+                          color: AppConfig.textPrimaryColor,
                         ),
                       ),
-                    ),
+                      const SizedBox(height: 4),
+                      Text(
+                        student.locationInfo,
+                        style: GoogleFonts.cairo(
+                          fontSize: AppConfig.fontSizeSmall,
+                          color: AppConfig.textSecondaryColor,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        student.studentId,
+                        style: GoogleFonts.cairo(
+                          fontSize: AppConfig.fontSizeSmall,
+                          color: AppConfig.textLightColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                AnimatedOpacity(
+                  duration: const Duration(milliseconds: 200),
+                  opacity: isSelected ? 1 : 0,
+                  child: Icon(
+                    Icons.check_circle,
+                    color: AppConfig.primaryColor,
                   ),
                 ),
               ],
             ),
-
-            const SizedBox(height: AppConfig.spacingXXL),
-          ],
+          ),
         ),
       ),
     );
@@ -499,6 +857,128 @@ class _ReportsPageState extends State<ReportsPage>
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildReportPreview() {
+    if (_latestReports.isEmpty) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'لم يتم إنشاء تقارير بعد',
+            style: GoogleFonts.cairo(
+              fontSize: AppConfig.fontSizeLarge,
+              fontWeight: FontWeight.w600,
+              color: AppConfig.textPrimaryColor,
+            ),
+          ),
+          const SizedBox(height: AppConfig.spacingSM),
+          Text(
+            'قم بإنشاء التقرير للاطلاع على ملخص الأداء الأخير للطلاب المختارين.',
+            style: GoogleFonts.cairo(
+              fontSize: AppConfig.fontSizeMedium,
+              color: AppConfig.textSecondaryColor,
+            ),
+          ),
+        ],
+      );
+    }
+
+    return Column(
+      children: _latestReports.map((report) {
+        final evaluationColor = report.getEvaluationColor();
+        return Container(
+          margin: const EdgeInsets.only(bottom: AppConfig.spacingMD),
+          padding: const EdgeInsets.all(AppConfig.spacingMD),
+          decoration: BoxDecoration(
+            color: AppConfig.surfaceColor,
+            borderRadius: BorderRadius.circular(AppConfig.borderRadius / 2),
+            border: Border.all(
+              color: evaluationColor.withValues(alpha: 0.4),
+              width: 1,
+            ),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: evaluationColor.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  report.getEvaluationIcon(),
+                  color: evaluationColor,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: AppConfig.spacingMD),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      report.student.fullName,
+                      style: GoogleFonts.cairo(
+                        fontSize: AppConfig.fontSizeLarge,
+                        fontWeight: FontWeight.w600,
+                        color: AppConfig.textPrimaryColor,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'التقييم العام: ${report.getEvaluationText()} (${report.overallScore.toStringAsFixed(1)}%)',
+                      style: GoogleFonts.cairo(
+                        fontSize: AppConfig.fontSizeMedium,
+                        color: evaluationColor,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.bar_chart_outlined,
+                          size: 16,
+                          color: AppConfig.textSecondaryColor,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          'متوسط الدرجات: ${report.gradeAverage.toStringAsFixed(1)}%',
+                          style: GoogleFonts.cairo(
+                            fontSize: AppConfig.fontSizeSmall,
+                            color: AppConfig.textSecondaryColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.schedule_outlined,
+                          size: 16,
+                          color: AppConfig.textSecondaryColor,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          'نسبة الحضور: ${(report.attendanceRate * 100).toStringAsFixed(1)}%',
+                          style: GoogleFonts.cairo(
+                            fontSize: AppConfig.fontSizeSmall,
+                            color: AppConfig.textSecondaryColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      }).toList(),
     );
   }
 

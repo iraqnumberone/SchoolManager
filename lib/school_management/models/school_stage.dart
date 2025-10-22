@@ -6,6 +6,7 @@ class SchoolStage {
   final int order;
   final bool isActive;
   final DateTime createdAt;
+  final DateTime updatedAt;
 
   SchoolStage({
     required this.id,
@@ -14,19 +15,23 @@ class SchoolStage {
     this.description,
     required this.order,
     this.isActive = true,
-    required this.createdAt,
-  });
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) : 
+    createdAt = createdAt ?? DateTime.now(),
+    updatedAt = updatedAt ?? DateTime.now();
 
   // إنشاء مرحلة من JSON
   factory SchoolStage.fromJson(Map<String, dynamic> json) {
     return SchoolStage(
-      id: json['id'] as String,
-      schoolId: json['schoolId'] as String,
-      name: json['name'] as String,
-      description: json['description'] as String?,
-      order: json['order'] as int,
-      isActive: json['isActive'] as bool? ?? true,
-      createdAt: DateTime.parse(json['createdAt'] as String),
+      id: json['id'].toString(),
+      schoolId: json['schoolId'].toString(),
+      name: json['name']?.toString() ?? '',
+      description: json['description']?.toString(),
+      order: json['order'] is int ? json['order'] : int.tryParse(json['order']?.toString() ?? '0') ?? 0,
+      isActive: json['isActive'] == true || (json['isActive'] is int && json['isActive'] == 1),
+      createdAt: json['createdAt'] != null ? DateTime.tryParse(json['createdAt'].toString()) : null,
+      updatedAt: json['updatedAt'] != null ? DateTime.tryParse(json['updatedAt'].toString()) : null,
     );
   }
 
@@ -40,6 +45,7 @@ class SchoolStage {
       'order': order,
       'isActive': isActive,
       'createdAt': createdAt.toIso8601String(),
+      'updatedAt': updatedAt.toIso8601String(),
     };
   }
 
@@ -52,6 +58,7 @@ class SchoolStage {
     int? order,
     bool? isActive,
     DateTime? createdAt,
+    DateTime? updatedAt,
   }) {
     return SchoolStage(
       id: id ?? this.id,
@@ -61,6 +68,7 @@ class SchoolStage {
       order: order ?? this.order,
       isActive: isActive ?? this.isActive,
       createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:school_app/core/app_config.dart';
-import 'package:school_app/features/school/services/school_service.dart';
+import 'package:school_app/school_management/services/school_service.dart';
 import 'package:school_app/school_management/pages/schools_list_page.dart';
 import 'package:school_app/features/students/pages/students_list_page.dart';
 import 'package:school_app/reports/pages/reports_page.dart';
-import 'package:school_app/attendance_management/pages/attendance_grades_page.dart';
+import 'package:school_app/attendance_management/pages/attendance_grades_system_page.dart';
 
 class SmartTeacherHomePage extends StatefulWidget {
   const SmartTeacherHomePage({super.key});
@@ -32,11 +32,12 @@ class _SmartTeacherHomePageState extends State<SmartTeacherHomePage>
       _isLoading = true;
     });
 
-    // تهيئة البيانات التجريبية
-    await SchoolService.initializeDemoData();
+    // تهيئة البيانات التجريبية (قاعدة البيانات SQLite)
+    await SchoolService.instance.initializeDemoData();
 
-    // الحصول على إحصائيات المدرسة
-    final stats = await SchoolService.getSchoolStats('school_1');
+    // الحصول على إحصائيات المدرسة من الخدمة المعتمدة على SQLite
+    // ملاحظة: معرف المدرسة التجريبية في خدمة قاعدة البيانات هو '1'
+    final stats = await SchoolService.instance.getSchoolStats('1');
 
     setState(() {
       _schoolStats = stats;
@@ -211,7 +212,7 @@ class _SmartTeacherHomePageState extends State<SmartTeacherHomePage>
       children: [
         _buildStatCard(
           'إجمالي الفصول',
-          '${_schoolStats['totalClassrooms'] ?? 0}',
+          '${_schoolStats['totalClassGroups'] ?? 0}',
           Icons.school_outlined,
           AppConfig.primaryColor,
           'فصل دراسي',
@@ -231,11 +232,11 @@ class _SmartTeacherHomePageState extends State<SmartTeacherHomePage>
           'طالب',
         ),
         _buildStatCard(
-          'معدل الحضور اليوم',
-          '${(_schoolStats['attendanceRate'] ?? 0).toStringAsFixed(1)}%',
+          'معدل الإشغال',
+          '${(((_schoolStats['occupancyRate'] ?? 0.0) as num) * 100).toStringAsFixed(1)}%',
           Icons.trending_up_outlined,
           AppConfig.warningColor,
-          'نسبة الحضور',
+          'نسبة الإشغال',
         ),
       ],
     );
@@ -817,7 +818,7 @@ class _SmartTeacherHomePageState extends State<SmartTeacherHomePage>
     // الانتقال إلى صفحة الحضور والدرجات
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const AttendanceGradesPage()),
+      MaterialPageRoute(builder: (context) => const AttendanceGradesSystemPage()),
     );
   }
 

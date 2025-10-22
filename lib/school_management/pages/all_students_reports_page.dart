@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:school_app/core/app_config.dart';
-import 'package:school_app/student_management/models/student_report.dart';
+// StudentReport is already imported through student_service.dart
 import 'package:school_app/student_management/services/student_service.dart';
 
 class AllStudentsReportsPage extends StatefulWidget {
@@ -12,6 +12,7 @@ class AllStudentsReportsPage extends StatefulWidget {
 }
 
 class _AllStudentsReportsPageState extends State<AllStudentsReportsPage> {
+  final StudentService _studentService = StudentService();
   List<StudentReport> _studentReports = [];
   bool _isLoading = true;
   String _searchQuery = '';
@@ -23,18 +24,21 @@ class _AllStudentsReportsPageState extends State<AllStudentsReportsPage> {
   }
 
   Future<void> _loadAllStudentReports() async {
-    setState(() {
-      _isLoading = true;
-    });
+    if (mounted) {
+      setState(() {
+        _isLoading = true;
+      });
+    }
 
-    // تهيئة البيانات التجريبية للطلاب إذا لزم الأمر
-    await StudentService.initializeDemoStudents();
-
-    // الحصول على جميع الطلاب وإنشاء تقاريرهم
-    final reports = await StudentService.generateAllStudentReports();
-
-    // فلترة التقارير حسب البحث
-    final filteredReports = _searchQuery.isEmpty
+    try {
+      // Ensure demo data is initialized
+      await _studentService.initializeDemoStudents();
+      
+      // Generate reports for all students
+      final reports = await _studentService.generateAllStudentReports();
+      
+      // Filter reports based on search query
+      final filteredReports = _searchQuery.isEmpty
         ? reports
         : reports.where((report) {
             return report.student.fullName.toLowerCase().contains(_searchQuery.toLowerCase()) ||
@@ -42,13 +46,27 @@ class _AllStudentsReportsPageState extends State<AllStudentsReportsPage> {
                    report.student.schoolId.toLowerCase().contains(_searchQuery.toLowerCase());
           }).toList();
 
-    // ترتيب التقارير حسب التقييم العام (من الأعلى إلى الأقل)
-    filteredReports.sort((a, b) => b.overallScore.compareTo(a.overallScore));
+      // Sort reports by overall score (highest first)
+      filteredReports.sort((a, b) => b.overallScore.compareTo(a.overallScore));
 
-    setState(() {
-      _studentReports = filteredReports;
-      _isLoading = false;
-    });
+      if (mounted) {
+        setState(() {
+          _studentReports = filteredReports;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading student reports: $e');
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        // Show error message to user
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('حدث خطأ أثناء تحميل التقارير: ${e.toString()}')),
+        );
+      }
+    }
   }
 
   void _onSearchChanged(String query) {

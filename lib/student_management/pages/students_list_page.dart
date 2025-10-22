@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:school_app/core/app_config.dart';
-import 'package:school_app/student_management/models/student.dart';
 import 'package:school_app/student_management/services/student_service.dart';
+import 'package:school_app/core/app_config.dart';
 import 'student_report_page.dart';
 import 'package:school_app/attendance_management/pages/attendance_page.dart';
 import 'grades_page.dart';
@@ -33,22 +32,22 @@ class _StudentsListPageState extends State<StudentsListPage> {
     });
 
     // تهيئة البيانات التجريبية
-    await StudentService.initializeDemoStudents();
+    await StudentService().initializeDemoStudents();
 
     // الحصول على الطلاب حسب الفلتر المحدد
     List<Student> students;
     switch (_selectedFilter) {
       case 'المرحلة الأولى':
-        students = await StudentService.getStudentsByStage('stage_1');
+        students = await StudentService().getStudentsByClassGroup('group_1');
         break;
       case 'المرحلة الثانية':
-        students = await StudentService.getStudentsByStage('stage_2');
+        students = await StudentService().getStudentsByStage('stage_2');
         break;
       case 'المرحلة الثالثة':
-        students = await StudentService.getStudentsByStage('stage_3');
+        students = await StudentService().getStudentsByStage('stage_3');
         break;
       default:
-        students = await StudentService.getAllStudents();
+        students = await StudentService().getAllStudents();
     }
 
     setState(() {

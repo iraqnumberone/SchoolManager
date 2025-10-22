@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:school_app/core/app_config.dart';
-import 'package:school_app/student_management/models/student.dart';
-import 'package:school_app/student_management/models/student_report.dart';
 import 'package:school_app/student_management/services/student_service.dart';
 
 class StudentReportPage extends StatefulWidget {
@@ -57,8 +55,10 @@ class _StudentReportPageState extends State<StudentReportPage>
     });
   }
 
+  late final StudentService _studentService = StudentService();
+
   void _loadReport() {
-    _reportFuture = StudentService.generateStudentReport(widget.studentId);
+    _reportFuture = _studentService.generateStudentReport(widget.studentId);
   }
 
   @override

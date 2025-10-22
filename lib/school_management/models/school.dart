@@ -1,18 +1,17 @@
 class School {
   final String id;
-  final String name;
-  final String address;
-  final String phone;
-  final String email;
+  String name;
+  String address;
+  String phone;
+  String email;
   final String? logo;
-  final String directorName;
+  String directorName;
   final DateTime createdAt;
-  final bool isActive;
-
-  // الحقول الجديدة المطلوبة
-  final String educationLevel; // مرحلة الدراسة (ابتدائي، متوسط، ثانوي)
-  final String section; // الشعبة (أ، ب، ج، إلخ)
-  final int studentCount; // عدد الطلاب
+  DateTime updatedAt;
+  bool isActive;
+  String educationLevel; // مرحلة الدراسة (ابتدائي، متوسط، ثانوي)
+  String section; // الشعبة (أ، ب، ج، إلخ)
+  int studentCount; // عدد الطلاب
 
   School({
     required this.id,
@@ -21,29 +20,39 @@ class School {
     required this.phone,
     required this.email,
     this.logo,
-    required this.directorName,
-    required this.createdAt,
+    this.directorName = 'غير محدد',
+    DateTime? createdAt,
+    DateTime? updatedAt,
     this.isActive = true,
-    required this.educationLevel,
-    required this.section,
-    required this.studentCount,
-  });
+    this.educationLevel = 'غير محدد',
+    this.section = 'أ',
+    this.studentCount = 0,
+  }) : 
+    createdAt = createdAt ?? DateTime.now(),
+    updatedAt = updatedAt ?? DateTime.now();
 
   // إنشاء مدرسة من JSON
   factory School.fromJson(Map<String, dynamic> json) {
     return School(
-      id: json['id'] as String,
-      name: json['name'] as String,
-      address: json['address'] as String,
-      phone: json['phone'] as String,
-      email: json['email'] as String,
-      logo: json['logo'] as String?,
-      directorName: json['directorName'] as String,
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      isActive: json['isActive'] as bool? ?? true,
-      educationLevel: json['educationLevel'] as String,
-      section: json['section'] as String,
-      studentCount: json['studentCount'] as int,
+      id: json['id']?.toString() ?? '',
+      name: json['name']?.toString() ?? '',
+      address: json['address']?.toString() ?? '',
+      phone: json['phone']?.toString() ?? '',
+      email: json['email']?.toString() ?? '',
+      logo: json['logo']?.toString(),
+      directorName: json['directorName']?.toString() ?? 'غير محدد',
+      createdAt: json['createdAt'] != null 
+          ? DateTime.tryParse(json['createdAt'].toString()) ?? DateTime.now()
+          : DateTime.now(),
+      updatedAt: json['updatedAt'] != null
+          ? DateTime.tryParse(json['updatedAt'].toString()) ?? DateTime.now()
+          : DateTime.now(),
+      isActive: json['isActive'] == 1 || json['isActive'] == true,
+      educationLevel: json['educationLevel']?.toString() ?? 'غير محدد',
+      section: json['section']?.toString() ?? 'أ',
+      studentCount: (json['studentCount'] is int) 
+          ? json['studentCount'] as int 
+          : int.tryParse(json['studentCount']?.toString() ?? '0') ?? 0,
     );
   }
 
@@ -55,10 +64,11 @@ class School {
       'address': address,
       'phone': phone,
       'email': email,
-      'logo': logo,
+      if (logo != null) 'logo': logo,
       'directorName': directorName,
       'createdAt': createdAt.toIso8601String(),
-      'isActive': isActive,
+      'updatedAt': updatedAt.toIso8601String(),
+      'isActive': isActive ? 1 : 0,
       'educationLevel': educationLevel,
       'section': section,
       'studentCount': studentCount,
@@ -75,6 +85,7 @@ class School {
     String? logo,
     String? directorName,
     DateTime? createdAt,
+    DateTime? updatedAt,
     bool? isActive,
     String? educationLevel,
     String? section,
@@ -89,6 +100,7 @@ class School {
       logo: logo ?? this.logo,
       directorName: directorName ?? this.directorName,
       createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
       isActive: isActive ?? this.isActive,
       educationLevel: educationLevel ?? this.educationLevel,
       section: section ?? this.section,

@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:school_app/core/app_config.dart';
 import 'package:school_app/school_management/models/school.dart';
 import 'package:school_app/school_management/services/school_service.dart';
+import 'package:school_app/student_management/services/student_service.dart';
 import 'package:school_app/features/students/pages/school_students_page.dart';
 
 class StudentsListPage extends StatefulWidget {
@@ -24,17 +25,40 @@ class _StudentsListPageState extends State<StudentsListPage> {
   }
 
   Future<void> _loadSchools() async {
+    if (!mounted) return;
+    
     setState(() {
       _isLoading = true;
     });
 
-    await SchoolService.initializeDemoData();
-    final schools = await SchoolService.getAllSchools();
+    try {
+      // Initialize demo data if needed
+      final schoolService = SchoolService.instance;
+      await schoolService.initializeDemoData();
+      
+      // Initialize student demo data
+      final studentService = StudentService();
+      await studentService.initializeDemoStudents();
+      
+      // Load schools
+      final schools = await schoolService.getSchools();
 
-    setState(() {
-      _schools = schools;
-      _isLoading = false;
-    });
+      if (mounted) {
+        setState(() {
+          _schools = schools;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('فشل في تحميل بيانات المدارس: $e')),
+        );
+      }
+    }
   }
 
   List<School> get _filteredSchools {
@@ -132,9 +156,9 @@ class _StudentsListPageState extends State<StudentsListPage> {
                   ),
                 )
               : _filteredSchools.isEmpty
-                ? _buildEmptyState()
+                ? _buildEmptyState(Icons.school_outlined, 'لا توجد مدارس متاحة')
                 : ListView.builder(
-                    padding: const EdgeInsets.all(AppConfig.spacingMD),
+                    padding: const EdgeInsets.all(16.0),
                     itemCount: _filteredSchools.length,
                     itemBuilder: (context, index) {
                       final school = _filteredSchools[index];
@@ -171,33 +195,50 @@ class _StudentsListPageState extends State<StudentsListPage> {
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(IconData icon, String text) {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
-            Icons.school_outlined,
-            size: 64,
-            color: AppConfig.textLightColor,
+            icon,
+            size: 14,
+            color: Theme.of(context).hintColor,
           ),
-          const SizedBox(height: AppConfig.spacingLG),
+          const SizedBox(width: 4),
           Text(
-            'لا توجد مدارس متاحة',
-            style: GoogleFonts.cairo(
-              fontSize: AppConfig.fontSizeLarge,
-              color: AppConfig.textSecondaryColor,
-              fontWeight: FontWeight.w600,
-            ),
+            text,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).hintColor,
+                ),
           ),
-          const SizedBox(height: AppConfig.spacingSM),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoChip(String text, IconData icon) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(8.0),
+        border: Border.all(color: Theme.of(context).dividerColor),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon,
+            size: 12,
+            color: Theme.of(context).hintColor,
+          ),
+          const SizedBox(width: 4),
           Text(
-            'أضف مدارس جديدة لتتمكن من إدارة الطلاب',
-            style: GoogleFonts.cairo(
-              fontSize: AppConfig.fontSizeMedium,
-              color: AppConfig.textLightColor,
-            ),
-            textAlign: TextAlign.center,
+            text,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).hintColor,
+                ),
           ),
         ],
       ),
@@ -205,145 +246,81 @@ class _StudentsListPageState extends State<StudentsListPage> {
   }
 
   Widget _buildSchoolCard(School school) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: AppConfig.spacingMD),
-      decoration: BoxDecoration(
-        color: AppConfig.cardColor,
-        borderRadius: BorderRadius.circular(AppConfig.borderRadius),
-        boxShadow: [
-          BoxShadow(
-            color: AppConfig.borderColor.withValues(alpha: 0.5),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
+    return Card(
+      margin: const EdgeInsets.symmetric(
+        horizontal: 16.0,
+        vertical: 8.0,
       ),
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(AppConfig.borderRadius),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(AppConfig.borderRadius),
-          onTap: () {
-            _navigateToSchoolStudents(school);
-          },
-          child: Padding(
-            padding: const EdgeInsets.all(AppConfig.spacingLG),
-            child: Row(
-              children: [
-                // شعار المدرسة
-                Container(
-                  width: 60,
-                  height: 60,
-                  decoration: BoxDecoration(
-                    color: AppConfig.primaryColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(AppConfig.borderRadius / 2),
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12.0),
+      ),
+      child: InkWell(
+        onTap: () => _navigateToSchoolStudents(school),
+        borderRadius: BorderRadius.circular(12.0),
+        child: Padding(
+          padding: const EdgeInsets.all(AppConfig.spacingMD),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(AppConfig.spacingSM),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).primaryColor.withAlpha(25), // ~10% opacity
+                      borderRadius: BorderRadius.circular(12.0),
+                    ),
+                    child: Icon(
+                      Icons.school,
+                      color: AppConfig.primaryColor,
+                      size: 24,
+                    ),
                   ),
-                  child: Icon(
-                    Icons.school,
-                    color: AppConfig.primaryColor,
-                    size: 30,
-                  ),
-                ),
-
-                const SizedBox(width: AppConfig.spacingMD),
-
-                // معلومات المدرسة
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        school.name,
-                        style: GoogleFonts.cairo(
-                          fontSize: AppConfig.fontSizeLarge,
-                          fontWeight: FontWeight.bold,
-                          color: AppConfig.textPrimaryColor,
+                  const SizedBox(width: AppConfig.spacingMD),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          school.name,
+                          style: GoogleFonts.cairo(
+                            fontSize: AppConfig.fontSizeLarge,
+                            fontWeight: FontWeight.bold,
+                            color: AppConfig.textPrimaryColor,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                      ),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.location_on,
+                        const SizedBox(height: AppConfig.spacingXS),
+                        Text(
+                          school.address,
+                          style: GoogleFonts.cairo(
+                            fontSize: AppConfig.fontSizeSmall,
                             color: AppConfig.textSecondaryColor,
-                            size: 16,
                           ),
-                          const SizedBox(width: 4),
-                          Text(
-                            school.address,
-                            style: GoogleFonts.cairo(
-                              fontSize: AppConfig.fontSizeMedium,
-                              color: AppConfig.textSecondaryColor,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${school.educationLevel} - شعبة ${school.section}',
-                        style: GoogleFonts.cairo(
-                          fontSize: AppConfig.fontSizeSmall,
-                          color: AppConfig.textLightColor,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-
-                // معلومات الطلاب
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppConfig.spacingSM,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppConfig.infoColor.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(AppConfig.borderRadius / 2),
-                      ),
-                      child: Text(
-                        '${school.studentCount} طالب',
-                        style: GoogleFonts.cairo(
-                          fontSize: AppConfig.fontSizeSmall,
-                          fontWeight: FontWeight.w600,
-                          color: AppConfig.infoColor,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppConfig.spacingSM,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppConfig.successColor.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(AppConfig.borderRadius / 2),
-                      ),
-                      child: Text(
-                        '3 شعبة',
-                        style: GoogleFonts.cairo(
-                          fontSize: AppConfig.fontSizeSmall,
-                          fontWeight: FontWeight.w600,
-                          color: AppConfig.successColor,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(width: AppConfig.spacingSM),
-
-                // أيقونة السهم
-                Icon(
-                  Icons.arrow_forward_ios,
-                  color: AppConfig.textSecondaryColor,
-                  size: 16,
-                ),
-              ],
-            ),
+                  const Icon(
+                    Icons.arrow_forward_ios,
+                    size: 16,
+                    color: AppConfig.textSecondaryColor,
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppConfig.spacingSM),
+              Row(
+                children: [
+                  _buildInfoChip('${school.studentCount} طالب', Icons.person),
+                  const SizedBox(width: AppConfig.spacingXS),
+                  _buildInfoChip('3 شعبة', Icons.class_),
+                ],
+              ),
+            ],
           ),
         ),
       ),

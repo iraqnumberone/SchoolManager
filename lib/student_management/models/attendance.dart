@@ -142,8 +142,8 @@ class Attendance {
   bool get isToday {
     final today = DateTime.now();
     return date.year == today.year &&
-           date.month == today.month &&
-           date.day == today.day;
+        date.month == today.month &&
+        date.day == today.day;
   }
 
   // التحقق من هل السجل لهذا الأسبوع
@@ -153,7 +153,7 @@ class Attendance {
     final weekEnd = weekStart.add(const Duration(days: 6));
 
     return date.isAfter(weekStart.subtract(const Duration(days: 1))) &&
-           date.isBefore(weekEnd.add(const Duration(days: 1)));
+        date.isBefore(weekEnd.add(const Duration(days: 1)));
   }
 
   @override
@@ -165,8 +165,8 @@ class Attendance {
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     return other is Attendance &&
-           other.studentId == studentId &&
-           other.date == date;
+        other.studentId == studentId &&
+        other.date == date;
   }
 
   @override

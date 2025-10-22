@@ -27,12 +27,12 @@ class _SchoolsListPageState extends State<SchoolsListPage> {
       _isLoading = true;
     });
 
-    // تهيئة البيانات التجريبية إذا لزم الأمر
-    await SchoolService.initializeDemoData();
+    // Initialize demo data if needed
+    await SchoolService.instance.initializeDemoData();
 
     final schools = _searchQuery.isEmpty
-        ? await SchoolService.getAllSchools()
-        : await SchoolService.searchSchools(_searchQuery);
+        ? await SchoolService.instance.getSchools()
+        : await SchoolService.instance.searchSchools(_searchQuery);
 
     setState(() {
       _schools = schools;
@@ -343,7 +343,7 @@ class _SchoolsListPageState extends State<SchoolsListPage> {
             onPressed: () async {
               final currentContext = context;
               Navigator.of(currentContext).pop();
-              final success = await SchoolService.deleteSchool(school.id);
+              final success = await SchoolService.instance.deleteSchool(school.id);
               if (mounted && currentContext.mounted) {
                 if (success) {
                   ScaffoldMessenger.of(currentContext).showSnackBar(
@@ -632,7 +632,7 @@ class _SimpleAddSchoolDialogState extends State<SimpleAddSchoolDialog> {
       studentCount: int.parse(_studentCountController.text.trim()),
     );
 
-    final success = await SchoolService.addSchool(school);
+    final success = await SchoolService.instance.addSchool(school);
     setState(() {
       _isLoading = false;
     });
@@ -928,7 +928,7 @@ class _SimpleEditSchoolDialogState extends State<SimpleEditSchoolDialog> {
       studentCount: int.parse(_studentCountController.text.trim()),
     );
 
-    final success = await SchoolService.updateSchool(updatedSchool);
+    final success = await SchoolService.instance.updateSchool(updatedSchool);
     setState(() {
       _isLoading = false;
     });
