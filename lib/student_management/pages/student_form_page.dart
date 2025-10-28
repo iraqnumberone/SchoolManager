@@ -5,7 +5,7 @@ import 'package:school_app/student_management/services/student_service.dart';
 
 class StudentFormPage extends StatefulWidget {
   final Student? student;
-  
+
   const StudentFormPage({super.key, this.student});
 
   @override
@@ -22,30 +22,36 @@ class _StudentFormPageState extends State<StudentFormPage> {
   late TextEditingController _addressController;
   late TextEditingController _phoneController;
   late TextEditingController _parentPhoneController;
-  
+
   String _gender = 'ذكر';
   String _status = 'active';
-  
+
   @override
   void initState() {
     super.initState();
     final student = widget.student;
-    _firstNameController = TextEditingController(text: student?.firstName ?? '');
+    _firstNameController = TextEditingController(
+      text: student?.firstName ?? '',
+    );
     _lastNameController = TextEditingController(text: student?.lastName ?? '');
-    _studentIdController = TextEditingController(text: student?.studentId ?? '');
+    _studentIdController = TextEditingController(
+      text: student?.studentId ?? '',
+    );
     _birthDateController = TextEditingController(
-      text: student?.birthDate.toString().split(' ')[0] ?? ''
+      text: student?.birthDate.toString().split(' ')[0] ?? '',
     );
     _addressController = TextEditingController(text: student?.address ?? '');
     _phoneController = TextEditingController(text: student?.phone ?? '');
-    _parentPhoneController = TextEditingController(text: student?.parentPhone ?? '');
-    
+    _parentPhoneController = TextEditingController(
+      text: student?.parentPhone ?? '',
+    );
+
     if (student != null) {
       _gender = student.gender;
       _status = student.status;
     }
   }
-  
+
   @override
   void dispose() {
     _firstNameController.dispose();
@@ -57,7 +63,7 @@ class _StudentFormPageState extends State<StudentFormPage> {
     _parentPhoneController.dispose();
     super.dispose();
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -88,25 +94,31 @@ class _StudentFormPageState extends State<StudentFormPage> {
               const SizedBox(height: 16),
               _buildDateField('تاريخ الميلاد', _birthDateController),
               const SizedBox(height: 16),
-              _buildDropdownField(
-                'الجنس',
-                _gender,
-                ['ذكر', 'أنثى'],
-                (value) => setState(() => _gender = value!)
-              ),
+              _buildDropdownField('الجنس', _gender, [
+                'ذكر',
+                'أنثى',
+              ], (value) => setState(() => _gender = value!)),
               const SizedBox(height: 16),
               _buildTextField('العنوان', _addressController, maxLines: 2),
               const SizedBox(height: 16),
-              _buildTextField('رقم الهاتف', _phoneController, keyboardType: TextInputType.phone),
-              const SizedBox(height: 16),
-              _buildTextField('هاتف ولي الأمر', _parentPhoneController, keyboardType: TextInputType.phone),
-              const SizedBox(height: 16),
-              _buildDropdownField(
-                'الحالة',
-                _status,
-                ['active', 'inactive', 'graduated', 'transferred'],
-                (value) => setState(() => _status = value!)
+              _buildTextField(
+                'رقم الهاتف',
+                _phoneController,
+                keyboardType: TextInputType.phone,
               ),
+              const SizedBox(height: 16),
+              _buildTextField(
+                'هاتف ولي الأمر',
+                _parentPhoneController,
+                keyboardType: TextInputType.phone,
+              ),
+              const SizedBox(height: 16),
+              _buildDropdownField('الحالة', _status, [
+                'active',
+                'inactive',
+                'graduated',
+                'transferred',
+              ], (value) => setState(() => _status = value!)),
               const SizedBox(height: 32),
               ElevatedButton(
                 onPressed: _saveStudent,
@@ -131,8 +143,10 @@ class _StudentFormPageState extends State<StudentFormPage> {
       ),
     );
   }
-  
-  Widget _buildTextField(String label, TextEditingController controller, {
+
+  Widget _buildTextField(
+    String label,
+    TextEditingController controller, {
     int maxLines = 1,
     TextInputType keyboardType = TextInputType.text,
   }) {
@@ -143,7 +157,10 @@ class _StudentFormPageState extends State<StudentFormPage> {
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppConfig.borderRadius),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 12,
+        ),
       ),
       maxLines: maxLines,
       keyboardType: keyboardType,
@@ -155,7 +172,7 @@ class _StudentFormPageState extends State<StudentFormPage> {
       },
     );
   }
-  
+
   Widget _buildDateField(String label, TextEditingController controller) {
     return TextFormField(
       controller: controller,
@@ -164,7 +181,10 @@ class _StudentFormPageState extends State<StudentFormPage> {
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppConfig.borderRadius),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 12,
+        ),
         suffixIcon: const Icon(Icons.calendar_today),
       ),
       readOnly: true,
@@ -177,7 +197,7 @@ class _StudentFormPageState extends State<StudentFormPage> {
       },
     );
   }
-  
+
   Future<void> _selectDate(TextEditingController controller) async {
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -185,14 +205,15 @@ class _StudentFormPageState extends State<StudentFormPage> {
       firstDate: DateTime(1900),
       lastDate: DateTime.now(),
     );
-    
+
     if (picked != null) {
       setState(() {
-        controller.text = "${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}";
+        controller.text =
+            "${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}";
       });
     }
   }
-  
+
   Widget _buildDropdownField<T>(
     String label,
     T value,
@@ -209,10 +230,7 @@ class _StudentFormPageState extends State<StudentFormPage> {
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       ),
       items: items.map<DropdownMenuItem<T>>((T value) {
-        return DropdownMenuItem<T>(
-          value: value,
-          child: Text(value.toString()),
-        );
+        return DropdownMenuItem<T>(value: value, child: Text(value.toString()));
       }).toList(),
       onChanged: onChanged,
       validator: (value) {
@@ -223,15 +241,18 @@ class _StudentFormPageState extends State<StudentFormPage> {
       },
     );
   }
-  
+
   Future<void> _saveStudent() async {
     if (_formKey.currentState?.validate() ?? false) {
       try {
-        final fullName = '${_firstNameController.text} ${_lastNameController.text}';
+        final fullName =
+            '${_firstNameController.text} ${_lastNameController.text}';
         final now = DateTime.now();
-        
+
         final student = Student(
-          id: widget.student?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
+          id:
+              widget.student?.id ??
+              DateTime.now().millisecondsSinceEpoch.toString(),
           firstName: _firstNameController.text,
           lastName: _lastNameController.text,
           fullName: fullName,
@@ -245,7 +266,9 @@ class _StudentFormPageState extends State<StudentFormPage> {
           classGroupId: widget.student?.classGroupId ?? '',
           schoolId: widget.student?.schoolId ?? '',
           stageId: widget.student?.stageId ?? 'stage_1', // Default stage
-          enrollmentDate: widget.student?.enrollmentDate ?? DateTime(now.year, now.month, 1),
+          enrollmentDate:
+              widget.student?.enrollmentDate ??
+              DateTime(now.year, now.month, 1),
         );
 
         // Save the student
@@ -262,7 +285,9 @@ class _StudentFormPageState extends State<StudentFormPage> {
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('حدث خطأ أثناء حفظ بيانات الطالب: ${e.toString()}')),
+            SnackBar(
+              content: Text('حدث خطأ أثناء حفظ بيانات الطالب: ${e.toString()}'),
+            ),
           );
         }
       }

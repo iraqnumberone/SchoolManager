@@ -6,7 +6,8 @@ class Grade {
   final String subjectId;
   final String classroomId;
   final String schoolId;
-  final String gradeType; // daily, weekly, monthly, midterm, final, project, homework
+  final String
+  gradeType; // daily, weekly, monthly, midterm, final, project, homework
   final double score;
   final double maxScore;
   final DateTime date;
@@ -124,14 +125,22 @@ class Grade {
 
   String get gradeTypeText {
     switch (gradeType) {
-      case 'daily': return 'درجة يومية';
-      case 'weekly': return 'درجة أسبوعية';
-      case 'monthly': return 'درجة شهرية';
-      case 'midterm': return 'درجة منتصف الفصل';
-      case 'final': return 'درجة نهائية';
-      case 'project': return 'مشروع';
-      case 'homework': return 'واجب منزلي';
-      default: return gradeType;
+      case 'daily':
+        return 'درجة يومية';
+      case 'weekly':
+        return 'درجة أسبوعية';
+      case 'monthly':
+        return 'درجة شهرية';
+      case 'midterm':
+        return 'درجة منتصف الفصل';
+      case 'final':
+        return 'درجة نهائية';
+      case 'project':
+        return 'مشروع';
+      case 'homework':
+        return 'واجب منزلي';
+      default:
+        return gradeType;
     }
   }
 
@@ -152,10 +161,10 @@ class Grade {
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     return other is Grade &&
-           other.studentId == studentId &&
-           other.subjectId == subjectId &&
-           other.date == date &&
-           other.gradeType == gradeType;
+        other.studentId == studentId &&
+        other.subjectId == subjectId &&
+        other.date == date &&
+        other.gradeType == gradeType;
   }
 
   @override

@@ -382,9 +382,7 @@ class _StudentsListPageState extends State<StudentsListPage> {
                 break;
               case 'grades':
                 Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => const GradesPage(),
-                  ),
+                  MaterialPageRoute(builder: (context) => const GradesPage()),
                 );
                 break;
               case 'report':
@@ -482,11 +480,18 @@ class _StudentsListPageState extends State<StudentsListPage> {
                     });
                   },
                   child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 12,
+                      horizontal: 16,
+                    ),
                     decoration: BoxDecoration(
-                      color: _selectedFilter == 'الكل' ? AppConfig.primaryColor.withValues(alpha: 0.1) : Colors.transparent,
+                      color: _selectedFilter == 'الكل'
+                          ? AppConfig.primaryColor.withValues(alpha: 0.1)
+                          : Colors.transparent,
                       border: Border.all(
-                        color: _selectedFilter == 'الكل' ? AppConfig.primaryColor : AppConfig.borderColor,
+                        color: _selectedFilter == 'الكل'
+                            ? AppConfig.primaryColor
+                            : AppConfig.borderColor,
                         width: 1,
                       ),
                       borderRadius: BorderRadius.circular(8),
@@ -494,8 +499,12 @@ class _StudentsListPageState extends State<StudentsListPage> {
                     child: Row(
                       children: [
                         Icon(
-                          _selectedFilter == 'الكل' ? Icons.radio_button_checked : Icons.radio_button_unchecked,
-                          color: _selectedFilter == 'الكل' ? AppConfig.primaryColor : AppConfig.textSecondaryColor,
+                          _selectedFilter == 'الكل'
+                              ? Icons.radio_button_checked
+                              : Icons.radio_button_unchecked,
+                          color: _selectedFilter == 'الكل'
+                              ? AppConfig.primaryColor
+                              : AppConfig.textSecondaryColor,
                         ),
                         const SizedBox(width: 8),
                         Text('الكل', style: GoogleFonts.cairo()),
@@ -510,11 +519,18 @@ class _StudentsListPageState extends State<StudentsListPage> {
                     });
                   },
                   child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 12,
+                      horizontal: 16,
+                    ),
                     decoration: BoxDecoration(
-                      color: _selectedFilter == 'المرحلة الأولى' ? AppConfig.primaryColor.withValues(alpha: 0.1) : Colors.transparent,
+                      color: _selectedFilter == 'المرحلة الأولى'
+                          ? AppConfig.primaryColor.withValues(alpha: 0.1)
+                          : Colors.transparent,
                       border: Border.all(
-                        color: _selectedFilter == 'المرحلة الأولى' ? AppConfig.primaryColor : AppConfig.borderColor,
+                        color: _selectedFilter == 'المرحلة الأولى'
+                            ? AppConfig.primaryColor
+                            : AppConfig.borderColor,
                         width: 1,
                       ),
                       borderRadius: BorderRadius.circular(8),
@@ -522,8 +538,12 @@ class _StudentsListPageState extends State<StudentsListPage> {
                     child: Row(
                       children: [
                         Icon(
-                          _selectedFilter == 'المرحلة الأولى' ? Icons.radio_button_checked : Icons.radio_button_unchecked,
-                          color: _selectedFilter == 'المرحلة الأولى' ? AppConfig.primaryColor : AppConfig.textSecondaryColor,
+                          _selectedFilter == 'المرحلة الأولى'
+                              ? Icons.radio_button_checked
+                              : Icons.radio_button_unchecked,
+                          color: _selectedFilter == 'المرحلة الأولى'
+                              ? AppConfig.primaryColor
+                              : AppConfig.textSecondaryColor,
                         ),
                         const SizedBox(width: 8),
                         Text('المرحلة الأولى', style: GoogleFonts.cairo()),
@@ -538,11 +558,18 @@ class _StudentsListPageState extends State<StudentsListPage> {
                     });
                   },
                   child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 12,
+                      horizontal: 16,
+                    ),
                     decoration: BoxDecoration(
-                      color: _selectedFilter == 'المرحلة الثانية' ? AppConfig.primaryColor.withValues(alpha: 0.1) : Colors.transparent,
+                      color: _selectedFilter == 'المرحلة الثانية'
+                          ? AppConfig.primaryColor.withValues(alpha: 0.1)
+                          : Colors.transparent,
                       border: Border.all(
-                        color: _selectedFilter == 'المرحلة الثانية' ? AppConfig.primaryColor : AppConfig.borderColor,
+                        color: _selectedFilter == 'المرحلة الثانية'
+                            ? AppConfig.primaryColor
+                            : AppConfig.borderColor,
                         width: 1,
                       ),
                       borderRadius: BorderRadius.circular(8),
@@ -550,8 +577,12 @@ class _StudentsListPageState extends State<StudentsListPage> {
                     child: Row(
                       children: [
                         Icon(
-                          _selectedFilter == 'المرحلة الثانية' ? Icons.radio_button_checked : Icons.radio_button_unchecked,
-                          color: _selectedFilter == 'المرحلة الثانية' ? AppConfig.primaryColor : AppConfig.textSecondaryColor,
+                          _selectedFilter == 'المرحلة الثانية'
+                              ? Icons.radio_button_checked
+                              : Icons.radio_button_unchecked,
+                          color: _selectedFilter == 'المرحلة الثانية'
+                              ? AppConfig.primaryColor
+                              : AppConfig.textSecondaryColor,
                         ),
                         const SizedBox(width: 8),
                         Text('المرحلة الثانية', style: GoogleFonts.cairo()),
@@ -566,11 +597,18 @@ class _StudentsListPageState extends State<StudentsListPage> {
                     });
                   },
                   child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 12,
+                      horizontal: 16,
+                    ),
                     decoration: BoxDecoration(
-                      color: _selectedFilter == 'المرحلة الثالثة' ? AppConfig.primaryColor.withValues(alpha: 0.1) : Colors.transparent,
+                      color: _selectedFilter == 'المرحلة الثالثة'
+                          ? AppConfig.primaryColor.withValues(alpha: 0.1)
+                          : Colors.transparent,
                       border: Border.all(
-                        color: _selectedFilter == 'المرحلة الثالثة' ? AppConfig.primaryColor : AppConfig.borderColor,
+                        color: _selectedFilter == 'المرحلة الثالثة'
+                            ? AppConfig.primaryColor
+                            : AppConfig.borderColor,
                         width: 1,
                       ),
                       borderRadius: BorderRadius.circular(8),
@@ -578,8 +616,12 @@ class _StudentsListPageState extends State<StudentsListPage> {
                     child: Row(
                       children: [
                         Icon(
-                          _selectedFilter == 'المرحلة الثالثة' ? Icons.radio_button_checked : Icons.radio_button_unchecked,
-                          color: _selectedFilter == 'المرحلة الثالثة' ? AppConfig.primaryColor : AppConfig.textSecondaryColor,
+                          _selectedFilter == 'المرحلة الثالثة'
+                              ? Icons.radio_button_checked
+                              : Icons.radio_button_unchecked,
+                          color: _selectedFilter == 'المرحلة الثالثة'
+                              ? AppConfig.primaryColor
+                              : AppConfig.textSecondaryColor,
                         ),
                         const SizedBox(width: 8),
                         Text('المرحلة الثالثة', style: GoogleFonts.cairo()),

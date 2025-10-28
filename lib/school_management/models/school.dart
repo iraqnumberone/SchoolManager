@@ -27,9 +27,8 @@ class School {
     this.educationLevel = 'غير محدد',
     this.section = 'أ',
     this.studentCount = 0,
-  }) : 
-    createdAt = createdAt ?? DateTime.now(),
-    updatedAt = updatedAt ?? DateTime.now();
+  }) : createdAt = createdAt ?? DateTime.now(),
+       updatedAt = updatedAt ?? DateTime.now();
 
   // إنشاء مدرسة من JSON
   factory School.fromJson(Map<String, dynamic> json) {
@@ -41,7 +40,7 @@ class School {
       email: json['email']?.toString() ?? '',
       logo: json['logo']?.toString(),
       directorName: json['directorName']?.toString() ?? 'غير محدد',
-      createdAt: json['createdAt'] != null 
+      createdAt: json['createdAt'] != null
           ? DateTime.tryParse(json['createdAt'].toString()) ?? DateTime.now()
           : DateTime.now(),
       updatedAt: json['updatedAt'] != null
@@ -50,8 +49,8 @@ class School {
       isActive: json['isActive'] == 1 || json['isActive'] == true,
       educationLevel: json['educationLevel']?.toString() ?? 'غير محدد',
       section: json['section']?.toString() ?? 'أ',
-      studentCount: (json['studentCount'] is int) 
-          ? json['studentCount'] as int 
+      studentCount: (json['studentCount'] is int)
+          ? json['studentCount'] as int
           : int.tryParse(json['studentCount']?.toString() ?? '0') ?? 0,
     );
   }

@@ -26,10 +26,9 @@ class _AttendanceGradesPageState extends State<AttendanceGradesPage>
     );
 
     // تأثير الظهور التدريجي
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(parent: _fadeController, curve: Curves.easeInOut));
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _fadeController, curve: Curves.easeInOut),
+    );
 
     // بدء التأثير
     _fadeController.forward();
@@ -92,7 +91,7 @@ class _AttendanceGradesPageState extends State<AttendanceGradesPage>
                         gradient: LinearGradient(
                           colors: [
                             AppConfig.primaryColor,
-                            AppConfig.secondaryColor
+                            AppConfig.secondaryColor,
                           ],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
@@ -102,7 +101,9 @@ class _AttendanceGradesPageState extends State<AttendanceGradesPage>
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: AppConfig.primaryColor.withValues(alpha: 0.3),
+                            color: AppConfig.primaryColor.withValues(
+                              alpha: 0.3,
+                            ),
                             blurRadius: 12,
                             offset: const Offset(0, 6),
                           ),
@@ -185,7 +186,8 @@ class _AttendanceGradesPageState extends State<AttendanceGradesPage>
                       onPressed: () {
                         Navigator.of(context).push(
                           MaterialPageRoute(
-                            builder: (context) => const AttendanceGradesSystemPage(),
+                            builder: (context) =>
+                                const AttendanceGradesSystemPage(),
                           ),
                         );
                       },
@@ -287,10 +289,7 @@ class _AttendanceGradesPageState extends State<AttendanceGradesPage>
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(AppConfig.borderRadius),
-        border: Border.all(
-          color: color.withValues(alpha: 0.3),
-          width: 1,
-        ),
+        border: Border.all(color: color.withValues(alpha: 0.3), width: 1),
       ),
       child: Column(
         children: [

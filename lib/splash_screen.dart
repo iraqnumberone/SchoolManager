@@ -11,7 +11,8 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMixin {
+class _SplashScreenState extends State<SplashScreen>
+    with TickerProviderStateMixin {
   late AnimationController _logoController;
   late AnimationController _textController;
   late AnimationController _dotsController;
@@ -46,41 +47,41 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     // تأثير تكبير الشعار
     _logoScaleAnimation = TweenSequence<double>([
       TweenSequenceItem(
-        tween: Tween<double>(begin: 0.3, end: 1.2).chain(CurveTween(curve: Curves.easeOut)),
+        tween: Tween<double>(
+          begin: 0.3,
+          end: 1.2,
+        ).chain(CurveTween(curve: Curves.easeOut)),
         weight: 60,
       ),
       TweenSequenceItem(
-        tween: Tween<double>(begin: 1.2, end: 1.0).chain(CurveTween(curve: Curves.elasticOut)),
+        tween: Tween<double>(
+          begin: 1.2,
+          end: 1.0,
+        ).chain(CurveTween(curve: Curves.elasticOut)),
         weight: 40,
       ),
     ]).animate(_logoController);
 
     // تأثير ظهور الشعار
-    _logoOpacityAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _logoController,
-      curve: const Interval(0.0, 0.6, curve: Curves.easeIn),
-    ));
+    _logoOpacityAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _logoController,
+        curve: const Interval(0.0, 0.6, curve: Curves.easeIn),
+      ),
+    );
 
     // تأثير انزلاق النص من الأسفل
-    _textSlideAnimation = Tween<double>(
-      begin: 50.0,
-      end: 0.0,
-    ).animate(CurvedAnimation(
-      parent: _textController,
-      curve: const Interval(0.2, 1.0, curve: Curves.easeOut),
-    ));
+    _textSlideAnimation = Tween<double>(begin: 50.0, end: 0.0).animate(
+      CurvedAnimation(
+        parent: _textController,
+        curve: const Interval(0.2, 1.0, curve: Curves.easeOut),
+      ),
+    );
 
     // تأثير النقاط المتحركة
-    _dotsAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _dotsController,
-      curve: Curves.easeInOut,
-    ));
+    _dotsAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _dotsController, curve: Curves.easeInOut),
+    );
 
     // بدء التأثيرات بالتسلسل
     _startAnimations();
@@ -144,7 +145,10 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                 children: [
                   // الشعار المتحرك
                   AnimatedBuilder(
-                    animation: Listenable.merge([_logoController, _logoOpacityAnimation]),
+                    animation: Listenable.merge([
+                      _logoController,
+                      _logoOpacityAnimation,
+                    ]),
                     builder: (context, child) {
                       return Opacity(
                         opacity: _logoOpacityAnimation.value,
@@ -171,7 +175,9 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                                   offset: const Offset(0, 4),
                                 ),
                                 BoxShadow(
-                                  color: AppConfig.primaryColor.withValues(alpha: 0.2),
+                                  color: AppConfig.primaryColor.withValues(
+                                    alpha: 0.2,
+                                  ),
                                   spreadRadius: 4,
                                   blurRadius: 12,
                                   offset: const Offset(0, 2),
@@ -210,7 +216,9 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                                   letterSpacing: 1.2,
                                   shadows: [
                                     Shadow(
-                                      color: Colors.black.withValues(alpha: 0.3),
+                                      color: Colors.black.withValues(
+                                        alpha: 0.3,
+                                      ),
                                       offset: const Offset(2, 2),
                                       blurRadius: 8,
                                     ),
@@ -227,7 +235,9 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                                   letterSpacing: 0.8,
                                   shadows: [
                                     Shadow(
-                                      color: Colors.black.withValues(alpha: 0.2),
+                                      color: Colors.black.withValues(
+                                        alpha: 0.2,
+                                      ),
                                       offset: const Offset(1, 1),
                                       blurRadius: 4,
                                     ),
@@ -261,8 +271,13 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                                 alpha: index == 0
                                     ? (_dotsAnimation.value > 0.66 ? 1.0 : 0.3)
                                     : index == 1
-                                        ? (_dotsAnimation.value > 0.33 && _dotsAnimation.value <= 0.66 ? 1.0 : 0.3)
-                                        : (_dotsAnimation.value <= 0.33 ? 1.0 : 0.3),
+                                    ? (_dotsAnimation.value > 0.33 &&
+                                              _dotsAnimation.value <= 0.66
+                                          ? 1.0
+                                          : 0.3)
+                                    : (_dotsAnimation.value <= 0.33
+                                          ? 1.0
+                                          : 0.3),
                               ),
                             ),
                           );

@@ -14,7 +14,8 @@ class DashboardPage extends StatefulWidget {
   State<DashboardPage> createState() => _DashboardPageState();
 }
 
-class _DashboardPageState extends State<DashboardPage> with TickerProviderStateMixin {
+class _DashboardPageState extends State<DashboardPage>
+    with TickerProviderStateMixin {
   late AnimationController _fadeController;
   late Animation<double> _fadeAnimation;
 
@@ -29,13 +30,9 @@ class _DashboardPageState extends State<DashboardPage> with TickerProviderStateM
     );
 
     // تأثير الظهور التدريجي
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _fadeController,
-      curve: Curves.easeInOut,
-    ));
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _fadeController, curve: Curves.easeInOut),
+    );
 
     // بدء التأثيرات
     _startAnimations();
@@ -96,10 +93,7 @@ class _DashboardPageState extends State<DashboardPage> with TickerProviderStateM
                 padding: const EdgeInsets.all(AppConfig.spacingLG),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [
-                      AppConfig.primaryColor,
-                      AppConfig.primaryLight,
-                    ],
+                    colors: [AppConfig.primaryColor, AppConfig.primaryLight],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
@@ -149,7 +143,9 @@ class _DashboardPageState extends State<DashboardPage> with TickerProviderStateM
                       ),
                       decoration: BoxDecoration(
                         color: Colors.white.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(AppConfig.borderRadius / 2),
+                        borderRadius: BorderRadius.circular(
+                          AppConfig.borderRadius / 2,
+                        ),
                       ),
                       child: Text(
                         'اليوم: ${DateTime.now().toString().split(' ')[0]}',
@@ -339,9 +335,7 @@ class _DashboardPageState extends State<DashboardPage> with TickerProviderStateM
         icon: const Icon(Icons.add),
         label: Text(
           'إضافة جديد',
-          style: GoogleFonts.cairo(
-            fontWeight: FontWeight.w600,
-          ),
+          style: GoogleFonts.cairo(fontWeight: FontWeight.w600),
         ),
       ),
     );

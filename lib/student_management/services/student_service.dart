@@ -30,40 +30,37 @@ class StudentService {
   static const String tableAttendance = 'attendance';
   static const String tableGrades = 'grades';
 
-  // Common columns
+  // Common columns (aligned with DatabaseHelper schema - camelCase)
   static const String columnId = 'id';
-  static const String columnStudentId = 'student_id';
-  static const String columnSchoolId = 'school_id';
-  static const String columnClassGroupId = 'class_group_id';
-  static const String columnStageId = 'stage_id';
+  static const String columnStudentId = 'studentId';
+  static const String columnSchoolId = 'schoolId';
+  static const String columnClassGroupId = 'classGroupId';
+  static const String columnStageId = 'stageId';
   static const String columnDate = 'date';
   static const String columnStatus = 'status';
+  // Students table uses created_at/updated_at but we don't rely on them here
   static const String columnCreatedAt = 'created_at';
   static const String columnUpdatedAt = 'updated_at';
 
-  // Students table columns
-  static const String columnName = 'name';
+  // Students table columns (actual)
+  static const String columnFullName = 'fullName';
+  static const String columnStudentCode = 'studentId';
   static const String columnGender = 'gender';
-  static const String columnBirthDate = 'birth_date';
+  static const String columnBirthDate = 'birthDate';
   static const String columnAddress = 'address';
   static const String columnPhone = 'phone';
-  static const String columnEmail = 'email';
-  static const String columnParentName = 'parent_name';
-  static const String columnParentPhone = 'parent_phone';
-  static const String columnPhotoUrl = 'photo_url';
+  static const String columnParentPhone = 'parentPhone';
   static const String columnIsActive = 'is_active';
 
   // Attendance table columns
   static const String columnAttendanceType = 'attendance_type';
   static const String columnNotes = 'notes';
 
-  // Grades table columns
+  // Grades table columns (actual)
   static const String columnSubject = 'subject';
-  static const String columnGrade = 'grade';
-  static const String columnMaxGrade = 'max_grade';
-  static const String columnTerm = 'term';
-  static const String columnAcademicYear = 'academic_year';
-  static const String columnTeacherNotes = 'teacher_notes';
+  static const String columnGradeType = 'gradeType';
+  static const String columnScore = 'score';
+  static const String columnMaxScore = 'maxScore';
 
   // Add a new student
   Future<bool> addStudent(Student student) async {
@@ -80,6 +77,64 @@ class StudentService {
     } catch (e) {
       _logger.severe('Error adding student', e);
       return false;
+    }
+  }
+
+  // Get grades filtered by subject and gradeType for a student
+  Future<List<Grade>> getStudentGradesBy(
+    String studentId, {
+    String? subject,
+    String? gradeType,
+    String? schoolId,
+  }) async {
+    try {
+      final db = await _dbHelper.database;
+      final whereClauses = <String>[];
+      final whereArgs = <Object?>[];
+      whereClauses.add('$columnStudentId = ?');
+      whereArgs.add(studentId);
+      if (subject != null) {
+        whereClauses.add('$columnSubject = ?');
+        whereArgs.add(subject);
+      }
+      if (gradeType != null) {
+        whereClauses.add('$columnGradeType = ?');
+        whereArgs.add(gradeType);
+      }
+      if (schoolId != null) {
+        whereClauses.add('$columnSchoolId = ?');
+        whereArgs.add(schoolId);
+      }
+      final List<Map<String, dynamic>> maps = await db.query(
+        tableGrades,
+        where: whereClauses.join(' AND '),
+        whereArgs: whereArgs,
+        orderBy: '$columnDate DESC',
+      );
+      return List.generate(maps.length, (i) => _gradeFromMap(maps[i]));
+    } catch (e) {
+      _logger.severe('Error getting filtered student grades', e);
+      return [];
+    }
+  }
+
+  // Delete grades for student+subject+gradeType (bulk delete)
+  Future<int> deleteGradesForStudentSubjectTerm(
+    String studentId,
+    String subject,
+    String gradeType,
+  ) async {
+    try {
+      final db = await _dbHelper.database;
+      return await db.delete(
+        tableGrades,
+        where:
+            '$columnStudentId = ? AND $columnSubject = ? AND $columnGradeType = ?',
+        whereArgs: [studentId, subject, gradeType],
+      );
+    } catch (e) {
+      _logger.severe('Error deleting grades by filters', e);
+      return 0;
     }
   }
 
@@ -217,7 +272,7 @@ class StudentService {
       final List<Map<String, dynamic>> maps = await db.query(
         tableStudents,
         where:
-            '($columnName LIKE ? OR $columnId LIKE ?) AND $columnIsActive = ?',
+            '($columnFullName LIKE ? OR $columnStudentId LIKE ?) AND $columnIsActive = ?',
         whereArgs: ['%$query%', '%$query%', 1],
       );
 
@@ -270,7 +325,7 @@ class StudentService {
         tableGrades,
         where: '$columnStudentId = ?',
         whereArgs: [studentId],
-        orderBy: '$columnAcademicYear DESC, $columnTerm, $columnSubject',
+        orderBy: '$columnDate DESC, $columnSubject',
       );
 
       return List.generate(maps.length, (i) => _gradeFromMap(maps[i]));
@@ -502,7 +557,9 @@ class StudentService {
       status: map['status'],
       photo: map['photo'],
       enrollmentDate: DateTime.parse(map['enrollmentDate']),
-      additionalInfo: map['additionalInfo'] != null && (map['additionalInfo'] as String).isNotEmpty
+      additionalInfo:
+          map['additionalInfo'] != null &&
+              (map['additionalInfo'] as String).isNotEmpty
           ? jsonDecode(map['additionalInfo'] as String) as Map<String, dynamic>
           : null,
     );
@@ -540,7 +597,9 @@ class StudentService {
       recordedAt: DateTime.parse(map['recordedAt']),
       checkInTime: map['checkInTime'],
       checkOutTime: map['checkOutTime'],
-      additionalData: map['additionalData'] != null && (map['additionalData'] as String).isNotEmpty
+      additionalData:
+          map['additionalData'] != null &&
+              (map['additionalData'] as String).isNotEmpty
           ? jsonDecode(map['additionalData'] as String) as Map<String, dynamic>
           : null,
     );
@@ -580,7 +639,9 @@ class StudentService {
       recordedBy: map['recordedBy'],
       recordedAt: DateTime.parse(map['recordedAt']),
       notes: map['notes'],
-      additionalData: map['additionalData'] != null && (map['additionalData'] as String).isNotEmpty
+      additionalData:
+          map['additionalData'] != null &&
+              (map['additionalData'] as String).isNotEmpty
           ? jsonDecode(map['additionalData'] as String) as Map<String, dynamic>
           : null,
     );
@@ -672,6 +733,44 @@ class StudentService {
       return true;
     } catch (e) {
       _logger.severe('Error adding grade', e);
+      return false;
+    }
+  }
+
+  // Public: Add a grade
+  Future<bool> addGrade(Grade grade) async {
+    return _addGrade(grade);
+  }
+
+  // Public: Update a grade
+  Future<bool> updateGrade(Grade grade) async {
+    try {
+      final db = await _dbHelper.database;
+      final count = await db.update(
+        tableGrades,
+        _gradeToMap(grade),
+        where: '$columnId = ?',
+        whereArgs: [grade.id],
+      );
+      return count > 0;
+    } catch (e) {
+      _logger.severe('Error updating grade', e);
+      return false;
+    }
+  }
+
+  // Public: Delete a grade
+  Future<bool> deleteGrade(String gradeId) async {
+    try {
+      final db = await _dbHelper.database;
+      final count = await db.delete(
+        tableGrades,
+        where: '$columnId = ?',
+        whereArgs: [gradeId],
+      );
+      return count > 0;
+    } catch (e) {
+      _logger.severe('Error deleting grade', e);
       return false;
     }
   }

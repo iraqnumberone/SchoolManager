@@ -26,7 +26,7 @@ class _StudentsListPageState extends State<StudentsListPage> {
 
   Future<void> _loadSchools() async {
     if (!mounted) return;
-    
+
     setState(() {
       _isLoading = true;
     });
@@ -35,11 +35,11 @@ class _StudentsListPageState extends State<StudentsListPage> {
       // Initialize demo data if needed
       final schoolService = SchoolService.instance;
       await schoolService.initializeDemoData();
-      
+
       // Initialize student demo data
       final studentService = StudentService();
       await studentService.initializeDemoStudents();
-      
+
       // Load schools
       final schools = await schoolService.getSchools();
 
@@ -65,10 +65,13 @@ class _StudentsListPageState extends State<StudentsListPage> {
     if (_searchQuery.isEmpty) {
       return _schools;
     }
-    return _schools.where((school) =>
-      school.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-      school.address.toLowerCase().contains(_searchQuery.toLowerCase())
-    ).toList();
+    return _schools
+        .where(
+          (school) =>
+              school.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+              school.address.toLowerCase().contains(_searchQuery.toLowerCase()),
+        )
+        .toList();
   }
 
   @override
@@ -119,7 +122,10 @@ class _StudentsListPageState extends State<StudentsListPage> {
                   color: AppConfig.textSecondaryColor,
                   fontSize: AppConfig.fontSizeMedium,
                 ),
-                prefixIcon: const Icon(Icons.search, color: AppConfig.textSecondaryColor),
+                prefixIcon: const Icon(
+                  Icons.search,
+                  color: AppConfig.textSecondaryColor,
+                ),
                 filled: true,
                 fillColor: AppConfig.backgroundColor,
                 border: OutlineInputBorder(
@@ -150,12 +156,12 @@ class _StudentsListPageState extends State<StudentsListPage> {
           // قائمة المدارس
           Expanded(
             child: _isLoading
-              ? const Center(
-                  child: CircularProgressIndicator(
-                    color: AppConfig.primaryColor,
-                  ),
-                )
-              : _filteredSchools.isEmpty
+                ? const Center(
+                    child: CircularProgressIndicator(
+                      color: AppConfig.primaryColor,
+                    ),
+                  )
+                : _filteredSchools.isEmpty
                 ? _buildEmptyState(Icons.school_outlined, 'لا توجد مدارس متاحة')
                 : ListView.builder(
                     padding: const EdgeInsets.all(16.0),
@@ -200,17 +206,13 @@ class _StudentsListPageState extends State<StudentsListPage> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            icon,
-            size: 14,
-            color: Theme.of(context).hintColor,
-          ),
+          Icon(icon, size: 14, color: Theme.of(context).hintColor),
           const SizedBox(width: 4),
           Text(
             text,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).hintColor,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: Theme.of(context).hintColor),
           ),
         ],
       ),
@@ -228,17 +230,13 @@ class _StudentsListPageState extends State<StudentsListPage> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            icon,
-            size: 12,
-            color: Theme.of(context).hintColor,
-          ),
+          Icon(icon, size: 12, color: Theme.of(context).hintColor),
           const SizedBox(width: 4),
           Text(
             text,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).hintColor,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: Theme.of(context).hintColor),
           ),
         ],
       ),
@@ -247,14 +245,9 @@ class _StudentsListPageState extends State<StudentsListPage> {
 
   Widget _buildSchoolCard(School school) {
     return Card(
-      margin: const EdgeInsets.symmetric(
-        horizontal: 16.0,
-        vertical: 8.0,
-      ),
+      margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12.0),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
       child: InkWell(
         onTap: () => _navigateToSchoolStudents(school),
         borderRadius: BorderRadius.circular(12.0),
@@ -268,7 +261,9 @@ class _StudentsListPageState extends State<StudentsListPage> {
                   Container(
                     padding: const EdgeInsets.all(AppConfig.spacingSM),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).primaryColor.withAlpha(25), // ~10% opacity
+                      color: Theme.of(
+                        context,
+                      ).primaryColor.withAlpha(25), // ~10% opacity
                       borderRadius: BorderRadius.circular(12.0),
                     ),
                     child: Icon(

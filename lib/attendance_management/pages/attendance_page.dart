@@ -1,17 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:logging/logging.dart';
 
 import 'package:school_app/core/app_config.dart';
 import 'package:school_app/student_management/services/student_service.dart';
-import 'package:school_app/school_management/models/class_group.dart';
 import 'package:school_app/school_management/models/school.dart';
 import 'package:school_app/school_management/services/school_service.dart';
+import 'dart:typed_data';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
+import 'package:flutter/services.dart' show rootBundle;
 
-final _logger = Logger('AttendancePage');
+ 
 
 class AttendancePage extends StatefulWidget {
-  const AttendancePage({super.key});
+  final School? school;
+  final VoidCallback? onBack;
+  const AttendancePage({super.key, this.school, this.onBack});
 
   @override
   State<AttendancePage> createState() => _AttendancePageState();
@@ -25,14 +30,12 @@ class _AttendancePageState extends State<AttendancePage>
   final Map<String, String> _attendanceStatus = {};
   bool _isLoading = true;
   List<School> _schools = [];
-  List<ClassGroup> _classGroups = [];
   School? _selectedSchool;
-  ClassGroup? _selectedClassGroup;
-  String? _selectedClassName;
   int _presentCount = 0;
   int _absentCount = 0;
   int _excusedCount = 0;
   int _lateCount = 0;
+  DateTime _selectedDate = DateTime.now();
 
   late AnimationController _saveButtonController;
   late AnimationController _statsController;
@@ -87,133 +90,58 @@ class _AttendancePageState extends State<AttendancePage>
       _isLoading = true;
     });
 
-    // Initialize demo data
-    await SchoolService.instance.initializeDemoData();
-    await _studentService.initializeDemoStudents();
+    if (widget.school != null) {
+      // عندما يتم تمرير مدرسة محددة، لا يزال يجب تحميل جميع المدارس للسماح بالتبديل
+      final schools = await _schoolService.getSchools();
+      final selectedSchool = schools.firstWhere(
+        (s) => s.id == widget.school!.id,
+        orElse: () => widget.school!,
+      );
 
-    // Get all schools
-    final schools = await _schoolService.getSchools();
-    final selectedSchool = schools.isNotEmpty ? schools.first : null;
-    
-    // Get class groups for the selected school
-    final classGroups = selectedSchool != null
-        ? await _getClassGroupsForSchool(selectedSchool.id)
-        : <ClassGroup>[];
-    final selectedGroup = classGroups.isNotEmpty ? classGroups.first : null;
-    // الحصول على الطلاب حسب الصف المحدد
-    final students = selectedGroup != null
-        ? await _studentService.getStudentsByClassGroup(selectedGroup.id)
-        : <Student>[];
+      // إحضار جميع الطلاب حسب المدرسة فقط
+      final students = await _studentService.getStudentsBySchool(selectedSchool.id);
 
-    setState(() {
-      _schools = schools;
-      _classGroups = classGroups;
-      _selectedSchool = selectedSchool;
-      _selectedClassGroup = selectedGroup;
-      _selectedClassName = selectedGroup?.name;
-      _students = students;
-      _initializeAttendanceStatus();
-      _calculateStats();
-      _isLoading = false;
-    });
-
-    if (_students.isNotEmpty) {
-      // بدء تأثير الإحصائيات
-      _statsController.forward();
-    }
-  }
-
-  Future<List<ClassGroup>> _getClassGroupsForSchool(String schoolId) async {
-    try {
-      final stages = await SchoolService.instance.getStagesBySchool(schoolId);
-      final groups = <ClassGroup>[];
-      for (var stage in stages) {
-        final stageGroups = await SchoolService.instance.getClassGroupsByStage(stage.id);
-        groups.addAll(stageGroups);
-      }
-      return groups;
-    } catch (e) {
-      _logger.severe('Error getting class groups for school', e);
-      return [];
-    }
-  }
-
-  Future<void> _onSchoolChanged(String? schoolId) async {
-    if (schoolId == null) {
-      return;
-    }
-
-    final school = _schools.firstWhere((s) => s.id == schoolId);
-
-    setState(() {
-      _selectedSchool = school;
-      _classGroups = [];
-      _selectedClassGroup = null;
-      _selectedClassName = null;
-      _students = [];
-      _attendanceStatus.clear();
-      _presentCount = 0;
-      _absentCount = 0;
-      _excusedCount = 0;
-      _lateCount = 0;
-      _isLoading = true;
-    });
-
-    final groups = await _getClassGroupsForSchool(schoolId);
-    final initialGroup = groups.isNotEmpty ? groups.first : null;
-
-    setState(() {
-      _classGroups = groups;
-      _selectedClassGroup = initialGroup;
-      _selectedClassName = initialGroup?.name;
-    });
-
-    if (initialGroup != null) {
-      await _loadStudentsForClass(initialGroup.id);
-    } else {
       setState(() {
+        _schools = schools;
+        _selectedSchool = selectedSchool;
+        _students = students;
+        _initializeAttendanceStatus();
+        _calculateStats();
         _isLoading = false;
       });
+    } else {
+      // Initialize demo data
+      await SchoolService.instance.initializeDemoData();
+      await _studentService.initializeDemoStudents();
+
+      // Get all schools
+      final schools = await _schoolService.getSchools();
+      // احترم الاختيار الحالي إذا كان موجودًا، وإلا اختر أول مدرسة
+      School? selectedSchool = _selectedSchool ??
+          (schools.isNotEmpty ? schools.first : null);
+
+      // الحصول على جميع الطلاب حسب المدرسة المحددة فقط
+      final students = selectedSchool != null
+          ? await _studentService.getStudentsBySchool(selectedSchool.id)
+          : <Student>[];
+
+      setState(() {
+        _schools = schools;
+        _selectedSchool = selectedSchool;
+        _students = students;
+        _initializeAttendanceStatus();
+        _calculateStats();
+        _isLoading = false;
+      });
+
+      if (_students.isNotEmpty) {
+        // بدء تأثير الإحصائيات
+        _statsController.forward();
+      }
     }
   }
 
-  Future<void> _onClassChanged(String? classId) async {
-    if (classId == null) {
-      return;
-    }
-
-    final group = _classGroups.firstWhere((g) => g.id == classId, orElse: () => _classGroups.first);
-
-    setState(() {
-      _selectedClassGroup = group;
-      _selectedClassName = group.name;
-    });
-
-    await _loadStudentsForClass(group.id);
-  }
-
-  Future<void> _loadStudentsForClass(String classGroupId) async {
-    setState(() {
-      _isLoading = true;
-      _students = [];
-      _attendanceStatus.clear();
-      _presentCount = 0;
-      _absentCount = 0;
-      _excusedCount = 0;
-      _lateCount = 0;
-    });
-
-    final students = await StudentService().getStudentsByClassGroup(classGroupId);
-
-    setState(() {
-      _students = students;
-      _initializeAttendanceStatus();
-      _calculateStats();
-      _isLoading = false;
-    });
-
-    _statsController.forward(from: 0.0);
-  }
+  // تم إلغاء منطق الشعب: سيتم التحميل حسب المدرسة فقط
 
   void _initializeAttendanceStatus() {
     // تهيئة جميع الطلاب كـ "حاضر" افتراضياً
@@ -289,7 +217,11 @@ class _AttendancePageState extends State<AttendancePage>
         id: 'attendance_${student.id}_${DateTime.now().millisecondsSinceEpoch}',
         studentId: student.id,
         schoolId: student.schoolId,
-        date: DateTime.now(),
+        date: DateTime(
+          _selectedDate.year,
+          _selectedDate.month,
+          _selectedDate.day,
+        ),
         status: entry.value,
         recordedBy: 'teacher_1',
         recordedAt: DateTime.now(),
@@ -338,11 +270,126 @@ class _AttendancePageState extends State<AttendancePage>
     });
   }
 
+  Future<void> _onSchoolChanged(String? schoolId) async {
+    if (schoolId == null) return;
+
+    final exists = _schools.any((s) => s.id == schoolId);
+    final selected = exists ? _schools.firstWhere((s) => s.id == schoolId) : null;
+
+    setState(() {
+      _selectedSchool = selected;
+      _students = [];
+      _attendanceStatus.clear();
+      _presentCount = 0;
+      _absentCount = 0;
+      _excusedCount = 0;
+      _lateCount = 0;
+      _isLoading = true;
+    });
+
+    if (selected != null) {
+      final students = await _studentService.getStudentsBySchool(selected.id);
+      setState(() {
+        _students = students;
+        _initializeAttendanceStatus();
+        _calculateStats();
+        _isLoading = false;
+      });
+    } else {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  // تم إزالة تبديل الشعب
+
   @override
   void dispose() {
     _saveButtonController.dispose();
     _statsController.dispose();
     super.dispose();
+  }
+
+  Future<Uint8List> _buildAttendancePdfBytes() async {
+    final doc = pw.Document();
+    final headers = ['الرقم', 'اسم الطالب', 'الحالة'];
+    final rows = _students.map((s) {
+      final status = _attendanceStatus[s.id] ?? AppConfig.attendancePresent;
+      return [
+        s.studentId,
+        s.fullName,
+        _getStatusText(status),
+      ];
+    }).toList();
+    final dateStr = '${_selectedDate.year}-${_selectedDate.month.toString().padLeft(2, '0')}-${_selectedDate.day.toString().padLeft(2, '0')}';
+
+    // Try to load Arabic-capable fonts (assets path then project root)
+    pw.Font? regularFont;
+    pw.Font? boldFont;
+    Future<pw.Font?> _tryLoad(String path) async {
+      try {
+        final data = await rootBundle.load(path);
+        return pw.Font.ttf(data);
+      } catch (_) {
+        return null;
+      }
+    }
+    regularFont = await _tryLoad('assets/fonts/Cairo-Regular.ttf')
+        ?? await _tryLoad('Cairo-Regular.ttf');
+    boldFont = await _tryLoad('assets/fonts/Cairo-Bold.ttf')
+        ?? await _tryLoad('Cairo-Bold.ttf');
+    if (boldFont == null && regularFont != null) {
+      boldFont = regularFont; // fallback
+    }
+
+    final pageTheme = (regularFont != null && boldFont != null)
+        ? pw.PageTheme(
+            textDirection: pw.TextDirection.rtl,
+            theme: pw.ThemeData.withFont(base: regularFont, bold: boldFont),
+          )
+        : const pw.PageTheme(
+            textDirection: pw.TextDirection.rtl,
+          );
+
+    doc.addPage(
+      pw.MultiPage(
+        pageTheme: pageTheme,
+        build: (context) => [
+          pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              pw.Text('تقرير الحضور', style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold)),
+              pw.SizedBox(height: 6),
+              pw.Text('المدرسة: ${_selectedSchool?.name ?? '-'}'),
+              pw.Text('التاريخ: $dateStr'),
+              pw.SizedBox(height: 12),
+              pw.TableHelper.fromTextArray(
+                headers: headers,
+                data: rows,
+                headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                headerDecoration: pw.BoxDecoration(color: PdfColors.grey300),
+                border: null,
+                cellAlignment: pw.Alignment.centerRight,
+              ),
+              pw.SizedBox(height: 12),
+              pw.Text('حاضرون: $_presentCount | غائبون: $_absentCount | مجازون: $_excusedCount | متأخرون: $_lateCount'),
+            ],
+          ),
+        ],
+      ),
+    );
+
+    return doc.save();
+  }
+
+  Future<void> _printAttendanceReport() async {
+    await Printing.layoutPdf(onLayout: (format) async => await _buildAttendancePdfBytes());
+  }
+
+  Future<void> _shareAttendanceReport() async {
+    final bytes = await _buildAttendancePdfBytes();
+    await Printing.sharePdf(bytes: bytes, filename: 'attendance_report.pdf');
   }
 
   @override
@@ -363,9 +410,25 @@ class _AttendancePageState extends State<AttendancePage>
         shadowColor: AppConfig.primaryColor.withValues(alpha: 0.3),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () {
+            if (widget.onBack != null) {
+              widget.onBack!();
+            } else {
+              Navigator.of(context).maybePop();
+            }
+          },
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.print_outlined, color: Colors.white),
+            onPressed: _printAttendanceReport,
+            tooltip: 'طباعة تقرير الحضور',
+          ),
+          IconButton(
+            icon: const Icon(Icons.share_outlined, color: Colors.white),
+            onPressed: _shareAttendanceReport,
+            tooltip: 'مشاركة تقرير الحضور',
+          ),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             margin: const EdgeInsets.only(right: 16),
@@ -374,7 +437,7 @@ class _AttendancePageState extends State<AttendancePage>
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
-              _selectedClassName ?? '',
+              _selectedSchool?.name ?? '',
               style: GoogleFonts.cairo(
                 color: Colors.white,
                 fontSize: AppConfig.fontSizeMedium,
@@ -431,6 +494,14 @@ class _AttendancePageState extends State<AttendancePage>
                           'المتأخرون',
                           _lateCount.toString(),
                           AppConfig.lateColor,
+                        ),
+                        const SizedBox(width: 8),
+                        _buildStatCard(
+                          'نسبة الحضور',
+                          _students.isEmpty
+                              ? '0%'
+                              : '${((_presentCount / _students.length) * 100).toStringAsFixed(0)}%',
+                          AppConfig.primaryColor,
                         ),
                       ],
                     ),
@@ -572,39 +643,67 @@ class _AttendancePageState extends State<AttendancePage>
               _onSchoolChanged(value);
             },
           ),
+
           const SizedBox(height: AppConfig.spacingMD),
-          DropdownButtonFormField<String>(
-            initialValue: _selectedClassGroup?.id,
-            decoration: InputDecoration(
-              labelText: 'اختر الشعبة',
-              labelStyle: GoogleFonts.cairo(
-                color: AppConfig.textSecondaryColor,
-              ),
-              filled: true,
-              fillColor: AppConfig.surfaceColor,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(AppConfig.borderRadius),
-                borderSide: BorderSide.none,
-              ),
-            ),
-            items: _classGroups
-                .map(
-                  (group) => DropdownMenuItem(
-                    value: group.id,
-                    child: Text(
-                      group.name,
-                      style: GoogleFonts.cairo(
-                        color: AppConfig.textPrimaryColor,
+
+          // محدد التاريخ بنفس أسلوب التصميم القديم
+          InkWell(
+            borderRadius: BorderRadius.circular(AppConfig.borderRadius),
+            onTap: () async {
+              final picked = await showDatePicker(
+                context: context,
+                initialDate: _selectedDate,
+                firstDate: DateTime(2020),
+                lastDate: DateTime(2100),
+                helpText: 'اختر التاريخ',
+                builder: (context, child) {
+                  return Theme(
+                    data: Theme.of(context).copyWith(
+                      colorScheme: ColorScheme.light(
+                        primary: AppConfig.primaryColor,
+                        onPrimary: Colors.white,
+                        onSurface: AppConfig.textPrimaryColor,
                       ),
                     ),
+                    child: child!,
+                  );
+                },
+              );
+              if (picked != null) {
+                setState(() {
+                  _selectedDate = picked;
+                });
+              }
+            },
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppConfig.spacingMD,
+                vertical: AppConfig.spacingMD,
+              ),
+              decoration: BoxDecoration(
+                color: AppConfig.surfaceColor,
+                borderRadius: BorderRadius.circular(AppConfig.borderRadius),
+                border: Border.all(color: AppConfig.borderColor),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.calendar_today,
+                    color: AppConfig.textSecondaryColor,
+                    size: 18,
                   ),
-                )
-                .toList(),
-            onChanged: _classGroups.isEmpty
-                ? null
-                : (value) {
-                    _onClassChanged(value);
-                  },
+                  const SizedBox(width: AppConfig.spacingSM),
+                  Text(
+                    'تاريخ الحضور: ${_selectedDate.toString().split(' ')[0]}',
+                    style: GoogleFonts.cairo(
+                      color: AppConfig.textPrimaryColor,
+                      fontSize: AppConfig.fontSizeMedium,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ],
       ),

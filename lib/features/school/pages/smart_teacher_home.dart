@@ -3,9 +3,10 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:school_app/core/app_config.dart';
 import 'package:school_app/school_management/services/school_service.dart';
 import 'package:school_app/school_management/pages/schools_list_page.dart';
-import 'package:school_app/features/students/pages/students_list_page.dart';
 import 'package:school_app/reports/pages/reports_page.dart';
-import 'package:school_app/attendance_management/pages/attendance_grades_system_page.dart';
+import 'package:school_app/attendance_management/pages/attendance_page.dart';
+import 'package:school_app/student_management/pages/grades_page.dart';
+import 'package:school_app/features/products/pages/products_page.dart';
 
 class SmartTeacherHomePage extends StatefulWidget {
   const SmartTeacherHomePage({super.key});
@@ -25,6 +26,47 @@ class _SmartTeacherHomePageState extends State<SmartTeacherHomePage>
     super.initState();
 
     _loadSchoolData();
+  }
+
+  Widget _buildPageForIndex(int index) {
+    switch (index) {
+      case 0:
+        return _buildMainContent();
+      case 1:
+        return ReportsPage(
+          onBack: () {
+            setState(() {
+              _currentIndex = 0;
+            });
+          },
+        );
+      case 2:
+        return SchoolsListPage(
+          onBack: () {
+            setState(() {
+              _currentIndex = 0;
+            });
+          },
+        );
+      case 3:
+        return AttendancePage(
+          onBack: () {
+            setState(() {
+              _currentIndex = 0;
+            });
+          },
+        );
+      case 4:
+        return GradesPage(
+          onBack: () {
+            setState(() {
+              _currentIndex = 0;
+            });
+          },
+        );
+      default:
+        return _buildMainContent();
+    }
   }
 
   Future<void> _loadSchoolData() async {
@@ -47,50 +89,90 @@ class _SmartTeacherHomePageState extends State<SmartTeacherHomePage>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppConfig.backgroundColor,
-      appBar: AppBar(
-        title: Text(
-          'مدرستي الذكية',
-          style: GoogleFonts.cairo(
-            fontSize: AppConfig.fontSizeXXLarge,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
-        backgroundColor: AppConfig.primaryColor,
-        elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_outlined, color: Colors.white),
-            onPressed: () {
-              // الانتقال إلى صفحة الإشعارات
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.menu, color: Colors.white),
-            onPressed: () {
-              Scaffold.of(context).openDrawer();
-            },
-          ),
-        ],
+    return PopScope(
+      canPop: _currentIndex == 0,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop && _currentIndex != 0) {
+          setState(() {
+            _currentIndex = 0;
+          });
+        }
+      },
+      child: Scaffold(
+        backgroundColor: AppConfig.backgroundColor,
+        appBar: _currentIndex == 0
+            ? AppBar(
+                title: Text(
+                  'مدرستي الذكية',
+                  style: GoogleFonts.cairo(
+                    fontSize: AppConfig.fontSizeXXLarge,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                backgroundColor: AppConfig.primaryColor,
+                elevation: 0,
+                actions: [
+                  IconButton(
+                    icon: const Icon(
+                      Icons.notifications_outlined,
+                      color: Colors.white,
+                    ),
+                    onPressed: () {
+                      // الانتقال إلى صفحة الإشعارات
+                    },
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.menu, color: Colors.white),
+                    onPressed: () {
+                      Scaffold.of(context).openDrawer();
+                    },
+                  ),
+                ],
+              )
+            : null,
+        body: _isLoading
+            ? _buildLoadingView()
+            : AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                switchInCurve: Curves.easeOut,
+                switchOutCurve: Curves.easeIn,
+                transitionBuilder: (child, animation) {
+                  final offset = Tween<Offset>(
+                    begin: const Offset(0.05, 0),
+                    end: Offset.zero,
+                  ).animate(animation);
+                  return FadeTransition(
+                    opacity: animation,
+                    child: SlideTransition(position: offset, child: child),
+                  );
+                },
+                child: KeyedSubtree(
+                  key: ValueKey<int>(_currentIndex),
+                  child: _buildPageForIndex(_currentIndex),
+                ),
+              ),
+        floatingActionButton: _currentIndex == 0
+            ? FloatingActionButton.extended(
+                onPressed: () {
+                  // الانتقال إلى قسم المدرسة لاختيار مدرسة ثم إضافة طالب
+                  setState(() {
+                    _currentIndex = 2; // المدرسة
+                  });
+                },
+                backgroundColor: AppConfig.secondaryColor,
+                foregroundColor: Colors.white,
+                elevation: AppConfig.buttonElevation,
+                icon: const Icon(Icons.person_add),
+                label: Text(
+                  'إضافة طالب',
+                  style: GoogleFonts.cairo(fontWeight: FontWeight.w600),
+                ),
+              )
+            : null,
+        drawer: _buildDrawer(),
+        bottomNavigationBar: _buildBottomNavigationBar(),
       ),
-      body: _isLoading ? _buildLoadingView() : _buildMainContent(),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          // إجراء سريع - إضافة طالب جديد
-        },
-        backgroundColor: AppConfig.secondaryColor,
-        foregroundColor: Colors.white,
-        elevation: AppConfig.buttonElevation,
-        icon: const Icon(Icons.person_add),
-        label: Text(
-          'إضافة طالب',
-          style: GoogleFonts.cairo(fontWeight: FontWeight.w600),
-        ),
-      ),
-      drawer: _buildDrawer(),
-      bottomNavigationBar: _buildBottomNavigationBar(),
     );
   }
 
@@ -312,7 +394,9 @@ class _SmartTeacherHomePageState extends State<SmartTeacherHomePage>
           Icons.check_circle_outline,
           AppConfig.secondaryColor,
           () {
-            // الانتقال إلى صفحة الحضور
+            setState(() {
+              _currentIndex = 3; // الحضور
+            });
           },
         ),
         _buildQuickActionCard(
@@ -320,7 +404,9 @@ class _SmartTeacherHomePageState extends State<SmartTeacherHomePage>
           Icons.grade_outlined,
           AppConfig.successColor,
           () {
-            // الانتقال إلى صفحة الدرجات
+            setState(() {
+              _currentIndex = 4; // الدرجات
+            });
           },
         ),
         _buildQuickActionCard(
@@ -328,7 +414,10 @@ class _SmartTeacherHomePageState extends State<SmartTeacherHomePage>
           Icons.people_outline,
           AppConfig.primaryColor,
           () {
-            // الانتقال إلى صفحة الطلاب
+            // الانتقال إلى قسم المدرسة لاختيار مدرسة وإدارة الطلاب
+            setState(() {
+              _currentIndex = 2; // المدرسة
+            });
           },
         ),
         _buildQuickActionCard(
@@ -558,23 +647,51 @@ class _SmartTeacherHomePageState extends State<SmartTeacherHomePage>
                   ),
                   _buildDrawerItem(Icons.school_outlined, 'إدارة المدرسة', () {
                     Navigator.of(context).pop();
+                    setState(() {
+                      _currentIndex = 2; // المدرسة
+                    });
                   }),
                   _buildDrawerItem(Icons.people_outline, 'إدارة الطلاب', () {
                     Navigator.of(context).pop();
+                    setState(() {
+                      _currentIndex = 2; // المدرسة
+                    });
                   }),
                   _buildDrawerItem(
-                    Icons.check_circle_outline,
-                    'الحضور والدرجات',
+                    Icons.inventory_2_outlined,
+                    'المنتجات',
                     () {
                       Navigator.of(context).pop();
-                      _navigateToAttendanceGradesPage();
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const ProductsPage()),
+                      );
+                    },
+                    color: AppConfig.infoColor,
+                  ),
+                  _buildDrawerItem(
+                    Icons.check_circle_outline,
+                    'تسجيل الحضور',
+                    () {
+                      Navigator.of(context).pop();
+                      setState(() {
+                        _currentIndex = 3; // الحضور
+                      });
                     },
                   ),
+                  _buildDrawerItem(Icons.grade_outlined, 'إدارة الدرجات', () {
+                    Navigator.of(context).pop();
+                    setState(() {
+                      _currentIndex = 4; // الدرجات
+                    });
+                  }),
                   _buildDrawerItem(
                     Icons.analytics_outlined,
                     'التقارير والإحصائيات',
                     () {
                       Navigator.of(context).pop();
+                      setState(() {
+                        _currentIndex = 1; // التقارير
+                      });
                     },
                   ),
                 ],
@@ -690,12 +807,12 @@ class _SmartTeacherHomePageState extends State<SmartTeacherHomePage>
             icon: Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: AppConfig.secondaryColor.withValues(alpha: 0.1),
+                color: AppConfig.warningColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(AppConfig.borderRadius / 2),
               ),
-              child: const Icon(Icons.people, size: 20),
+              child: const Icon(Icons.analytics, size: 20),
             ),
-            label: 'الطلاب',
+            label: 'التقارير',
           ),
           BottomNavigationBarItem(
             icon: Container(
@@ -712,118 +829,31 @@ class _SmartTeacherHomePageState extends State<SmartTeacherHomePage>
             icon: Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: AppConfig.warningColor.withValues(alpha: 0.1),
+                color: AppConfig.infoColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(AppConfig.borderRadius / 2),
               ),
-              child: const Icon(Icons.analytics, size: 20),
+              child: const Icon(Icons.calendar_today, size: 20),
             ),
-            label: 'التقارير',
+            label: 'الحضور',
           ),
           BottomNavigationBarItem(
             icon: Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: AppConfig.infoColor.withValues(alpha: 0.1),
+                color: AppConfig.primaryColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(AppConfig.borderRadius / 2),
               ),
-              child: const Icon(Icons.check_circle, size: 20),
+              child: const Icon(Icons.grade, size: 20),
             ),
-            label: 'الحضور و الدرجات',
+            label: 'الدرجات',
           ),
         ],
         onTap: (index) {
           setState(() {
             _currentIndex = index;
           });
-
-          // التعامل مع التنقل حسب العنصر المختار
-          switch (index) {
-            case 0:
-              // لوحة التحكم - إعادة تحميل البيانات وعرض رسالة نجاح
-              _reloadDashboardData();
-              break;
-            case 1:
-              // إدارة الطلاب - الانتقال إلى صفحة الطلاب
-              _navigateToStudentsPage();
-              break;
-            case 2:
-              // إدارة المدرسة - الانتقال إلى صفحة المدرسة
-              _navigateToSchoolPage();
-              break;
-            case 3:
-              // التقارير والإحصائيات - الانتقال إلى صفحة التقارير
-              _navigateToReportsPage();
-              break;
-            case 4:
-              // الحضور والدرجات - عرض رسالة مؤقتة أو فتح القائمة الجانبية
-              _showAttendanceMessage();
-              break;
-          }
         },
       ),
     );
-  }
-
-  void _reloadDashboardData() {
-    // إعادة تحميل بيانات لوحة التحكم وعرض رسالة نجاح
-    _showSuccessMessage('تم تحديث لوحة التحكم');
-    _loadSchoolData(); // إعادة تحميل البيانات
-  }
-
-  void _navigateToStudentsPage() {
-    // الانتقال إلى صفحة إدارة الطلاب وقائمة المدارس
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const StudentsListPage()),
-    );
-  }
-
-  void _navigateToSchoolPage() {
-    // الانتقال إلى صفحة إدارة المدرسة وقائمة المدارس
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const SchoolsListPage()),
-    );
-  }
-
-  void _navigateToReportsPage() {
-    // الانتقال إلى صفحة التقارير
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const ReportsPage()),
-    );
-  }
-
-  void _showSuccessMessage(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          message,
-          style: GoogleFonts.cairo(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        backgroundColor: AppConfig.successColor,
-        duration: const Duration(seconds: 2),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppConfig.borderRadius),
-        ),
-      ),
-    );
-  }
-
-  void _navigateToAttendanceGradesPage() {
-    // الانتقال إلى صفحة الحضور والدرجات
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const AttendanceGradesSystemPage()),
-    );
-  }
-
-  void _showAttendanceMessage() {
-    // الانتقال إلى صفحة الحضور والدرجات
-    _navigateToAttendanceGradesPage();
   }
 }

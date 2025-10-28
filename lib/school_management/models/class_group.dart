@@ -25,9 +25,8 @@ class ClassGroup {
     this.isActive = true,
     DateTime? createdAt,
     DateTime? updatedAt,
-  }) : 
-    createdAt = createdAt ?? DateTime.now(),
-    updatedAt = updatedAt ?? DateTime.now();
+  }) : createdAt = createdAt ?? DateTime.now(),
+       updatedAt = updatedAt ?? DateTime.now();
 
   // إنشاء شعبة من JSON
   factory ClassGroup.fromJson(Map<String, dynamic> json) {
@@ -37,13 +36,23 @@ class ClassGroup {
       stageId: json['stageId'].toString(),
       name: json['name']?.toString() ?? '',
       description: json['description']?.toString(),
-      capacity: json['capacity'] is int ? json['capacity'] : int.tryParse(json['capacity']?.toString() ?? '0') ?? 0,
-      currentStudents: json['current_students'] is int ? json['current_students'] : int.tryParse(json['current_students']?.toString() ?? '0') ?? 0,
+      capacity: json['capacity'] is int
+          ? json['capacity']
+          : int.tryParse(json['capacity']?.toString() ?? '0') ?? 0,
+      currentStudents: json['current_students'] is int
+          ? json['current_students']
+          : int.tryParse(json['current_students']?.toString() ?? '0') ?? 0,
       teacherId: json['teacher_id']?.toString(),
       teacherName: json['teacher_name']?.toString() ?? 'غير محدد',
-      isActive: json['is_active'] == true || (json['is_active'] is int && json['is_active'] == 1),
-      createdAt: json['created_at'] != null ? DateTime.tryParse(json['created_at'].toString()) : null,
-      updatedAt: json['updated_at'] != null ? DateTime.tryParse(json['updated_at'].toString()) : null,
+      isActive:
+          json['is_active'] == true ||
+          (json['is_active'] is int && json['is_active'] == 1),
+      createdAt: json['created_at'] != null
+          ? DateTime.tryParse(json['created_at'].toString())
+          : null,
+      updatedAt: json['updated_at'] != null
+          ? DateTime.tryParse(json['updated_at'].toString())
+          : null,
     );
   }
 

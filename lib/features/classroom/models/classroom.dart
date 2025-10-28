@@ -137,7 +137,8 @@ class Classroom {
     return Colors.green;
   }
 
-  double get capacityPercentage => maxStudents > 0 ? (currentStudents / maxStudents) * 100 : 0.0;
+  double get capacityPercentage =>
+      maxStudents > 0 ? (currentStudents / maxStudents) * 100 : 0.0;
 
   bool get isFull => currentStudents >= maxStudents;
   bool get hasSpace => currentStudents < maxStudents;

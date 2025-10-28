@@ -54,17 +54,19 @@ class StudentReport {
 
   // حساب نسبة الحضور
   double get attendanceRate {
-    return attendanceStats['attendanceRate'] ?? 0.0;
+    return (attendanceStats['attendanceRate'] as num?)?.toDouble() ?? 0.0;
   }
 
   // حساب متوسط الدرجات
   double get gradeAverage {
-    return gradeStats['overallAverage'] ?? 0.0;
+    final value = gradeStats['overallAverage'] ?? gradeStats['averageScore'];
+    return (value as num?)?.toDouble() ?? 0.0;
   }
 
   // الحصول على مستوى الأداء العام
   String get performanceLevel {
-    return gradeStats['performanceLevel'] ?? 'غير محدد';
+    final level = gradeStats['performanceLevel'];
+    return level is String ? level : 'غير محدد';
   }
 
   // الحصول على لون التقييم العام

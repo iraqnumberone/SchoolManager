@@ -181,43 +181,65 @@ class Student {
 
   String get genderText {
     switch (gender) {
-      case 'male': return 'ذكر';
-      case 'female': return 'أنثى';
-      default: return 'غير محدد';
+      case 'male':
+        return 'ذكر';
+      case 'female':
+        return 'أنثى';
+      default:
+        return 'غير محدد';
     }
   }
 
   Color get statusColor {
     switch (status) {
-      case 'active': return Colors.green;
-      case 'inactive': return Colors.red;
-      case 'graduated': return Colors.blue;
-      case 'transferred': return Colors.orange;
-      default: return Colors.grey;
+      case 'active':
+        return Colors.green;
+      case 'inactive':
+        return Colors.red;
+      case 'graduated':
+        return Colors.blue;
+      case 'transferred':
+        return Colors.orange;
+      default:
+        return Colors.grey;
     }
   }
 
   String get statusText {
     switch (status) {
-      case 'active': return 'نشط';
-      case 'inactive': return 'غير نشط';
-      case 'graduated': return 'متخرج';
-      case 'transferred': return 'منقول';
-      default: return 'غير محدد';
+      case 'active':
+        return 'نشط';
+      case 'inactive':
+        return 'غير نشط';
+      case 'graduated':
+        return 'متخرج';
+      case 'transferred':
+        return 'منقول';
+      default:
+        return 'غير محدد';
     }
   }
 
   String get bloodTypeText {
     switch (bloodType) {
-      case 'A+': return 'A+';
-      case 'A-': return 'A-';
-      case 'B+': return 'B+';
-      case 'B-': return 'B-';
-      case 'AB+': return 'AB+';
-      case 'AB-': return 'AB-';
-      case 'O+': return 'O+';
-      case 'O-': return 'O-';
-      default: return bloodType;
+      case 'A+':
+        return 'A+';
+      case 'A-':
+        return 'A-';
+      case 'B+':
+        return 'B+';
+      case 'B-':
+        return 'B-';
+      case 'AB+':
+        return 'AB+';
+      case 'AB-':
+        return 'AB-';
+      case 'O+':
+        return 'O+';
+      case 'O-':
+        return 'O-';
+      default:
+        return bloodType;
     }
   }
 

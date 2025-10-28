@@ -120,19 +120,27 @@ class School {
   String get displayName => name;
   String get typeText {
     switch (schoolType) {
-      case 'public': return 'حكومية';
-      case 'private': return 'خاصة';
-      case 'international': return 'دولية';
-      default: return 'غير محدد';
+      case 'public':
+        return 'حكومية';
+      case 'private':
+        return 'خاصة';
+      case 'international':
+        return 'دولية';
+      default:
+        return 'غير محدد';
     }
   }
 
   Color get typeColor {
     switch (schoolType) {
-      case 'public': return Colors.blue;
-      case 'private': return Colors.green;
-      case 'international': return Colors.orange;
-      default: return Colors.grey;
+      case 'public':
+        return Colors.blue;
+      case 'private':
+        return Colors.green;
+      case 'international':
+        return Colors.orange;
+      default:
+        return Colors.grey;
     }
   }
 

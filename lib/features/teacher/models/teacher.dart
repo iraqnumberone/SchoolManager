@@ -131,28 +131,40 @@ class Teacher {
 
   String get qualificationText {
     switch (qualification) {
-      case 'bachelor': return 'بكالوريوس';
-      case 'master': return 'ماجستير';
-      case 'phd': return 'دكتوراه';
-      default: return qualification;
+      case 'bachelor':
+        return 'بكالوريوس';
+      case 'master':
+        return 'ماجستير';
+      case 'phd':
+        return 'دكتوراه';
+      default:
+        return qualification;
     }
   }
 
   Color get statusColor {
     switch (status) {
-      case 'active': return Colors.green;
-      case 'inactive': return Colors.red;
-      case 'on_leave': return Colors.orange;
-      default: return Colors.grey;
+      case 'active':
+        return Colors.green;
+      case 'inactive':
+        return Colors.red;
+      case 'on_leave':
+        return Colors.orange;
+      default:
+        return Colors.grey;
     }
   }
 
   String get statusText {
     switch (status) {
-      case 'active': return 'نشط';
-      case 'inactive': return 'غير نشط';
-      case 'on_leave': return 'في إجازة';
-      default: return 'غير محدد';
+      case 'active':
+        return 'نشط';
+      case 'inactive':
+        return 'غير نشط';
+      case 'on_leave':
+        return 'في إجازة';
+      default:
+        return 'غير محدد';
     }
   }
 

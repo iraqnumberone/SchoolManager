@@ -38,7 +38,10 @@ class _AuthScreenState extends State<AuthScreen> {
             children: [
               // شريط التنقل العلوي
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 child: Row(
                   children: [
                     IconButton(
@@ -75,9 +78,7 @@ class _AuthScreenState extends State<AuthScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      _isLogin
-                          ? 'ليس لديك حساب؟'
-                          : 'لديك حساب بالفعل؟',
+                      _isLogin ? 'ليس لديك حساب؟' : 'لديك حساب بالفعل؟',
                       style: GoogleFonts.cairo(
                         fontSize: 16,
                         color: Colors.grey[600],

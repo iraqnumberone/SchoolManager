@@ -63,12 +63,18 @@ class SchoolService {
     }
   }
 
-  static Future<List<Classroom>> getClassroomsByTeacher(String teacherId) async {
+  static Future<List<Classroom>> getClassroomsByTeacher(
+    String teacherId,
+  ) async {
     try {
       await Future.delayed(const Duration(milliseconds: 300));
-      return _classrooms.values.where((c) =>
-        c.classTeacherId == teacherId || c.assistantTeacherId == teacherId
-      ).toList();
+      return _classrooms.values
+          .where(
+            (c) =>
+                c.classTeacherId == teacherId ||
+                c.assistantTeacherId == teacherId,
+          )
+          .toList();
     } catch (e) {
       return [];
     }
@@ -97,7 +103,9 @@ class SchoolService {
   static Future<List<Teacher>> getTeachersBySubject(String subject) async {
     try {
       await Future.delayed(const Duration(milliseconds: 300));
-      return _teachers.values.where((t) => t.subjects.contains(subject)).toList();
+      return _teachers.values
+          .where((t) => t.subjects.contains(subject))
+          .toList();
     } catch (e) {
       return [];
     }
@@ -119,12 +127,14 @@ class SchoolService {
     }
   }
 
-  static Future<List<Student>> getStudentsByClassroom(String classroomId) async {
+  static Future<List<Student>> getStudentsByClassroom(
+    String classroomId,
+  ) async {
     try {
       await Future.delayed(const Duration(milliseconds: 300));
-      return _students.values.where((s) =>
-        s.classroomId == classroomId && s.status == 'active'
-      ).toList();
+      return _students.values
+          .where((s) => s.classroomId == classroomId && s.status == 'active')
+          .toList();
     } catch (e) {
       return [];
     }
@@ -133,9 +143,9 @@ class SchoolService {
   static Future<List<Student>> getStudentsBySchool(String schoolId) async {
     try {
       await Future.delayed(const Duration(milliseconds: 300));
-      return _students.values.where((s) =>
-        s.schoolId == schoolId && s.status == 'active'
-      ).toList();
+      return _students.values
+          .where((s) => s.schoolId == schoolId && s.status == 'active')
+          .toList();
     } catch (e) {
       return [];
     }
@@ -151,13 +161,14 @@ class SchoolService {
       }
 
       // التحقق من عدم وجود سجل حضور لنفس الطالب في نفس التاريخ والفصل
-      final existingIndex = _attendance[attendance.studentId]!
-          .indexWhere((a) =>
+      final existingIndex = _attendance[attendance.studentId]!.indexWhere(
+        (a) =>
             a.studentId == attendance.studentId &&
             a.date.year == attendance.date.year &&
             a.date.month == attendance.date.month &&
             a.date.day == attendance.date.day &&
-            a.classroomId == attendance.classroomId);
+            a.classroomId == attendance.classroomId,
+      );
 
       if (existingIndex >= 0) {
         _attendance[attendance.studentId]![existingIndex] = attendance;
@@ -171,7 +182,11 @@ class SchoolService {
     }
   }
 
-  static Future<List<Attendance>> getStudentAttendance(String studentId, {DateTime? fromDate, DateTime? toDate}) async {
+  static Future<List<Attendance>> getStudentAttendance(
+    String studentId, {
+    DateTime? fromDate,
+    DateTime? toDate,
+  }) async {
     try {
       await Future.delayed(const Duration(milliseconds: 300));
 
@@ -182,11 +197,17 @@ class SchoolService {
       var attendanceList = _attendance[studentId]!;
 
       if (fromDate != null) {
-        attendanceList = attendanceList.where((a) => a.date.isAfter(fromDate.subtract(const Duration(days: 1)))).toList();
+        attendanceList = attendanceList
+            .where(
+              (a) => a.date.isAfter(fromDate.subtract(const Duration(days: 1))),
+            )
+            .toList();
       }
 
       if (toDate != null) {
-        attendanceList = attendanceList.where((a) => a.date.isBefore(toDate.add(const Duration(days: 1)))).toList();
+        attendanceList = attendanceList
+            .where((a) => a.date.isBefore(toDate.add(const Duration(days: 1))))
+            .toList();
       }
 
       return attendanceList..sort((a, b) => b.date.compareTo(a.date));
@@ -195,19 +216,23 @@ class SchoolService {
     }
   }
 
-  static Future<List<Attendance>> getClassroomAttendance(String classroomId, DateTime date) async {
+  static Future<List<Attendance>> getClassroomAttendance(
+    String classroomId,
+    DateTime date,
+  ) async {
     try {
       await Future.delayed(const Duration(milliseconds: 300));
 
       final allAttendance = <Attendance>[];
       for (var studentAttendance in _attendance.values) {
         allAttendance.addAll(
-          studentAttendance.where((a) =>
-            a.classroomId == classroomId &&
-            a.date.year == date.year &&
-            a.date.month == date.month &&
-            a.date.day == date.day
-          )
+          studentAttendance.where(
+            (a) =>
+                a.classroomId == classroomId &&
+                a.date.year == date.year &&
+                a.date.month == date.month &&
+                a.date.day == date.day,
+          ),
         );
       }
 
@@ -227,14 +252,15 @@ class SchoolService {
       }
 
       // التحقق من عدم وجود درجة لنفس المادة في نفس التاريخ
-      final existingIndex = _grades[grade.studentId]!
-          .indexWhere((g) =>
+      final existingIndex = _grades[grade.studentId]!.indexWhere(
+        (g) =>
             g.studentId == grade.studentId &&
             g.subjectId == grade.subjectId &&
             g.date.year == grade.date.year &&
             g.date.month == grade.date.month &&
             g.date.day == grade.date.day &&
-            g.gradeType == grade.gradeType);
+            g.gradeType == grade.gradeType,
+      );
 
       if (existingIndex >= 0) {
         _grades[grade.studentId]![existingIndex] = grade;
@@ -248,7 +274,11 @@ class SchoolService {
     }
   }
 
-  static Future<List<Grade>> getStudentGrades(String studentId, {String? subjectId, String? gradeType}) async {
+  static Future<List<Grade>> getStudentGrades(
+    String studentId, {
+    String? subjectId,
+    String? gradeType,
+  }) async {
     try {
       await Future.delayed(const Duration(milliseconds: 300));
 
@@ -272,18 +302,23 @@ class SchoolService {
     }
   }
 
-  static Future<List<Grade>> getClassroomGrades(String classroomId, String subjectId, {String? gradeType}) async {
+  static Future<List<Grade>> getClassroomGrades(
+    String classroomId,
+    String subjectId, {
+    String? gradeType,
+  }) async {
     try {
       await Future.delayed(const Duration(milliseconds: 300));
 
       final allGrades = <Grade>[];
       for (var studentGrades in _grades.values) {
         allGrades.addAll(
-          studentGrades.where((g) =>
-            g.classroomId == classroomId &&
-            g.subjectId == subjectId &&
-            (gradeType == null || g.gradeType == gradeType)
-          )
+          studentGrades.where(
+            (g) =>
+                g.classroomId == classroomId &&
+                g.subjectId == subjectId &&
+                (gradeType == null || g.gradeType == gradeType),
+          ),
         );
       }
 
@@ -306,9 +341,16 @@ class SchoolService {
       int totalAbsentToday = 0;
 
       for (var classroom in classrooms) {
-        final todayAttendance = await getClassroomAttendance(classroom.id, DateTime.now());
-        totalPresentToday += todayAttendance.where((a) => a.status == 'present').length;
-        totalAbsentToday += todayAttendance.where((a) => a.status == 'absent').length;
+        final todayAttendance = await getClassroomAttendance(
+          classroom.id,
+          DateTime.now(),
+        );
+        totalPresentToday += todayAttendance
+            .where((a) => a.status == 'present')
+            .length;
+        totalAbsentToday += todayAttendance
+            .where((a) => a.status == 'absent')
+            .length;
       }
 
       return {
@@ -317,24 +359,37 @@ class SchoolService {
         'totalStudents': students.length,
         'totalPresentToday': totalPresentToday,
         'totalAbsentToday': totalAbsentToday,
-        'attendanceRate': students.isNotEmpty ? (totalPresentToday / (totalPresentToday + totalAbsentToday)) * 100 : 0.0,
+        'attendanceRate': students.isNotEmpty
+            ? (totalPresentToday / (totalPresentToday + totalAbsentToday)) * 100
+            : 0.0,
       };
     } catch (e) {
       return {};
     }
   }
 
-  static Future<Map<String, dynamic>> getClassroomStats(String classroomId) async {
+  static Future<Map<String, dynamic>> getClassroomStats(
+    String classroomId,
+  ) async {
     try {
       await Future.delayed(const Duration(milliseconds: 400));
 
       final students = await getStudentsByClassroom(classroomId);
-      final todayAttendance = await getClassroomAttendance(classroomId, DateTime.now());
+      final todayAttendance = await getClassroomAttendance(
+        classroomId,
+        DateTime.now(),
+      );
 
-      final presentCount = todayAttendance.where((a) => a.status == 'present').length;
-      final absentCount = todayAttendance.where((a) => a.status == 'absent').length;
+      final presentCount = todayAttendance
+          .where((a) => a.status == 'present')
+          .length;
+      final absentCount = todayAttendance
+          .where((a) => a.status == 'absent')
+          .length;
       final lateCount = todayAttendance.where((a) => a.status == 'late').length;
-      final excusedCount = todayAttendance.where((a) => a.status == 'excused').length;
+      final excusedCount = todayAttendance
+          .where((a) => a.status == 'excused')
+          .length;
 
       return {
         'totalStudents': students.length,
@@ -342,7 +397,9 @@ class SchoolService {
         'absentToday': absentCount,
         'lateToday': lateCount,
         'excusedToday': excusedCount,
-        'attendanceRate': students.isNotEmpty ? (presentCount / students.length) * 100 : 0.0,
+        'attendanceRate': students.isNotEmpty
+            ? (presentCount / students.length) * 100
+            : 0.0,
       };
     } catch (e) {
       return {};
@@ -497,18 +554,22 @@ class SchoolService {
       for (var student in students) {
         for (int i = 0; i < 7; i++) {
           final date = DateTime.now().subtract(Duration(days: i));
-          final status = i == 0 ? 'present' : (i % 3 == 0 ? 'absent' : 'present');
+          final status = i == 0
+              ? 'present'
+              : (i % 3 == 0 ? 'absent' : 'present');
 
-          await recordAttendance(Attendance(
-            id: 'attendance_${student.id}_${date.millisecondsSinceEpoch}',
-            studentId: student.id,
-            classroomId: student.classroomId,
-            schoolId: student.schoolId,
-            date: date,
-            status: status,
-            checkInTime: '08:00',
-            recordedBy: 'teacher_1',
-          ));
+          await recordAttendance(
+            Attendance(
+              id: 'attendance_${student.id}_${date.millisecondsSinceEpoch}',
+              studentId: student.id,
+              classroomId: student.classroomId,
+              schoolId: student.schoolId,
+              date: date,
+              status: status,
+              checkInTime: '08:00',
+              recordedBy: 'teacher_1',
+            ),
+          );
         }
       }
 
@@ -520,18 +581,20 @@ class SchoolService {
             final date = DateTime.now().subtract(Duration(days: i * 30));
             final score = 75 + (student.id.hashCode % 20) + (i * 5);
 
-            await addGrade(Grade(
-              id: 'grade_${student.id}_${subject}_${date.millisecondsSinceEpoch}',
-              studentId: student.id,
-              subjectId: subject,
-              classroomId: student.classroomId,
-              schoolId: student.schoolId,
-              gradeType: i == 0 ? 'monthly' : 'daily',
-              score: score.toDouble(),
-              maxScore: 100.0,
-              date: date,
-              recordedBy: 'teacher_1',
-            ));
+            await addGrade(
+              Grade(
+                id: 'grade_${student.id}_${subject}_${date.millisecondsSinceEpoch}',
+                studentId: student.id,
+                subjectId: subject,
+                classroomId: student.classroomId,
+                schoolId: student.schoolId,
+                gradeType: i == 0 ? 'monthly' : 'daily',
+                score: score.toDouble(),
+                maxScore: 100.0,
+                date: date,
+                recordedBy: 'teacher_1',
+              ),
+            );
           }
         }
       }

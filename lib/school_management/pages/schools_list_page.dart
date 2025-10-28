@@ -3,9 +3,12 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:school_app/core/app_config.dart';
 import 'package:school_app/school_management/models/school.dart';
 import 'package:school_app/school_management/services/school_service.dart';
+import 'package:school_app/school_management/pages/school_details_page.dart';
+import 'package:school_app/features/students/pages/school_students_page.dart';
 
 class SchoolsListPage extends StatefulWidget {
-  const SchoolsListPage({super.key});
+  final VoidCallback? onBack;
+  const SchoolsListPage({super.key, this.onBack});
 
   @override
   State<SchoolsListPage> createState() => _SchoolsListPageState();
@@ -49,110 +52,131 @@ class _SchoolsListPageState extends State<SchoolsListPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppConfig.backgroundColor,
-      appBar: AppBar(
-        title: Text(
-          'قائمة المدارس',
-          style: GoogleFonts.cairo(
-            fontSize: AppConfig.fontSizeXXLarge,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
-        backgroundColor: AppConfig.primaryColor,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh, color: Colors.white),
-            onPressed: _loadSchools,
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          // شريط البحث المبسط
-          Container(
-            padding: const EdgeInsets.all(AppConfig.spacingMD),
-            decoration: BoxDecoration(
-              color: AppConfig.cardColor,
-              boxShadow: [
-                BoxShadow(
-                  color: AppConfig.borderColor.withValues(alpha: 0.1),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: TextField(
-              decoration: InputDecoration(
-                hintText: 'البحث في المدارس...',
-                hintStyle: GoogleFonts.cairo(
-                  color: AppConfig.textSecondaryColor,
-                  fontSize: AppConfig.fontSizeMedium,
-                ),
-                prefixIcon: const Icon(
-                  Icons.search,
-                  color: AppConfig.textSecondaryColor,
-                ),
-                filled: true,
-                fillColor: AppConfig.backgroundColor,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppConfig.borderRadius),
-                  borderSide: BorderSide(color: AppConfig.borderColor),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppConfig.borderRadius),
-                  borderSide: BorderSide(color: AppConfig.borderColor),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppConfig.borderRadius),
-                  borderSide: BorderSide(color: AppConfig.primaryColor),
-                ),
-              ),
-              style: GoogleFonts.cairo(
-                fontSize: AppConfig.fontSizeMedium,
-                color: AppConfig.textPrimaryColor,
-              ),
-              onChanged: _onSearchChanged,
+    return PopScope(
+      canPop: widget.onBack == null,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) {
+          if (widget.onBack != null) {
+            widget.onBack!();
+          } else {
+            final nav = Navigator.of(context);
+            if (nav.canPop()) {
+              nav.pop();
+            }
+          }
+        }
+      },
+      child: Scaffold(
+        backgroundColor: AppConfig.backgroundColor,
+        appBar: AppBar(
+          title: Text(
+            'قائمة المدارس',
+            style: GoogleFonts.cairo(
+              fontSize: AppConfig.fontSizeXXLarge,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
             ),
           ),
-
-          // قائمة المدارس
-          Expanded(
-            child: _isLoading
-                ? const Center(
-                    child: CircularProgressIndicator(
-                      color: AppConfig.primaryColor,
-                    ),
-                  )
-                : _schools.isEmpty
-                ? _buildEmptyState()
-                : ListView.builder(
-                    padding: const EdgeInsets.all(AppConfig.spacingMD),
-                    itemCount: _schools.length,
-                    itemBuilder: (context, index) {
-                      return _buildSchoolCard(_schools[index]);
-                    },
+          backgroundColor: AppConfig.primaryColor,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () {
+              if (widget.onBack != null) {
+                widget.onBack!();
+              } else {
+                Navigator.of(context).maybePop();
+              }
+            },
+          ),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.refresh, color: Colors.white),
+              onPressed: _loadSchools,
+            ),
+          ],
+        ),
+        body: Column(
+          children: [
+            // شريط البحث المبسط
+            Container(
+              padding: const EdgeInsets.all(AppConfig.spacingMD),
+              decoration: BoxDecoration(
+                color: AppConfig.cardColor,
+                boxShadow: [
+                  BoxShadow(
+                    color: AppConfig.borderColor.withValues(alpha: 0.1),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
                   ),
+                ],
+              ),
+              child: TextField(
+                decoration: InputDecoration(
+                  hintText: 'البحث في المدارس...',
+                  hintStyle: GoogleFonts.cairo(
+                    color: AppConfig.textSecondaryColor,
+                    fontSize: AppConfig.fontSizeMedium,
+                  ),
+                  prefixIcon: const Icon(
+                    Icons.search,
+                    color: AppConfig.textSecondaryColor,
+                  ),
+                  filled: true,
+                  fillColor: AppConfig.backgroundColor,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppConfig.borderRadius),
+                    borderSide: BorderSide(color: AppConfig.borderColor),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppConfig.borderRadius),
+                    borderSide: BorderSide(color: AppConfig.borderColor),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppConfig.borderRadius),
+                    borderSide: BorderSide(color: AppConfig.primaryColor),
+                  ),
+                ),
+                style: GoogleFonts.cairo(
+                  fontSize: AppConfig.fontSizeMedium,
+                  color: AppConfig.textPrimaryColor,
+                ),
+                onChanged: _onSearchChanged,
+              ),
+            ),
+
+            // قائمة المدارس
+            Expanded(
+              child: _isLoading
+                  ? const Center(
+                      child: CircularProgressIndicator(
+                        color: AppConfig.primaryColor,
+                      ),
+                    )
+                  : _schools.isEmpty
+                  ? _buildEmptyState()
+                  : ListView.builder(
+                      padding: const EdgeInsets.all(AppConfig.spacingMD),
+                      itemCount: _schools.length,
+                      itemBuilder: (context, index) {
+                        return _buildSchoolCard(_schools[index]);
+                      },
+                    ),
+            ),
+          ],
+        ),
+        floatingActionButton: FloatingActionButton.extended(
+          onPressed: () {
+            _showAddSchoolDialog();
+          },
+          backgroundColor: AppConfig.secondaryColor,
+          foregroundColor: Colors.white,
+          elevation: AppConfig.buttonElevation,
+          icon: const Icon(Icons.add),
+          label: Text(
+            'إضافة مدرسة',
+            style: GoogleFonts.cairo(fontWeight: FontWeight.w600),
           ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          _showAddSchoolDialog();
-        },
-        backgroundColor: AppConfig.secondaryColor,
-        foregroundColor: Colors.white,
-        elevation: AppConfig.buttonElevation,
-        icon: const Icon(Icons.add),
-        label: Text(
-          'إضافة مدرسة',
-          style: GoogleFonts.cairo(fontWeight: FontWeight.w600),
         ),
       ),
     );
@@ -187,127 +211,198 @@ class _SchoolsListPageState extends State<SchoolsListPage> {
   Widget _buildSchoolCard(School school) {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  width: 50,
-                  height: 50,
-                  decoration: BoxDecoration(
-                    color: AppConfig.primaryColor.withValues(alpha: 0.1),
-                    shape: BoxShape.circle,
+      child: InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => SchoolStudentsPage(school: school),
+            ),
+          );
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 50,
+                    height: 50,
+                    decoration: BoxDecoration(
+                      color: AppConfig.primaryColor.withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(Icons.school, color: AppConfig.primaryColor),
                   ),
-                  child: Icon(Icons.school, color: AppConfig.primaryColor),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        school.name,
-                        style: GoogleFonts.cairo(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          school.name,
+                          style: GoogleFonts.cairo(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          school.directorName,
+                          style: GoogleFonts.cairo(
+                            fontSize: 14,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    tooltip: 'إضافة طالب',
+                    icon: const Icon(Icons.person_add_alt_1),
+                    onPressed: () {
+                      _showAddStudentSheet(school);
+                    },
+                  ),
+                  PopupMenuButton<String>(
+                    onSelected: (value) {
+                      switch (value) {
+                        case 'edit':
+                          _showEditSchoolDialog(school);
+                          break;
+                        case 'delete':
+                          _showDeleteConfirmation(school);
+                          break;
+                      }
+                    },
+                    itemBuilder: (context) => [
+                      const PopupMenuItem(
+                        value: 'edit',
+                        child: Row(
+                          children: [
+                            Icon(Icons.edit, size: 20),
+                            SizedBox(width: 8),
+                            Text('تعديل'),
+                          ],
                         ),
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        school.directorName,
-                        style: GoogleFonts.cairo(
-                          fontSize: 14,
-                          color: Colors.grey[600],
+                      const PopupMenuItem(
+                        value: 'delete',
+                        child: Row(
+                          children: [
+                            Icon(Icons.delete, size: 20),
+                            SizedBox(width: 8),
+                            Text('حذف'),
+                          ],
                         ),
                       ),
                     ],
                   ),
-                ),
-                PopupMenuButton<String>(
-                  onSelected: (value) {
-                    switch (value) {
-                      case 'edit':
-                        _showEditSchoolDialog(school);
-                        break;
-                      case 'delete':
-                        _showDeleteConfirmation(school);
-                        break;
-                    }
-                  },
-                  itemBuilder: (context) => [
-                    const PopupMenuItem(
-                      value: 'edit',
-                      child: Row(
-                        children: [
-                          Icon(Icons.edit, size: 20),
-                          SizedBox(width: 8),
-                          Text('تعديل'),
-                        ],
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Icon(Icons.location_on, size: 16, color: Colors.grey[500]),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Text(
+                      school.address,
+                      style: GoogleFonts.cairo(
+                        fontSize: 14,
+                        color: Colors.grey[600],
                       ),
                     ),
-                    const PopupMenuItem(
-                      value: 'delete',
-                      child: Row(
-                        children: [
-                          Icon(Icons.delete, size: 20),
-                          SizedBox(width: 8),
-                          Text('حذف'),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Icon(Icons.location_on, size: 16, color: Colors.grey[500]),
-                const SizedBox(width: 4),
-                Expanded(
-                  child: Text(
-                    school.address,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Icon(Icons.phone, size: 16, color: Colors.grey[500]),
+                  const SizedBox(width: 4),
+                  Text(
+                    school.phone,
                     style: GoogleFonts.cairo(
                       fontSize: 14,
                       color: Colors.grey[600],
                     ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Icon(Icons.phone, size: 16, color: Colors.grey[500]),
-                const SizedBox(width: 4),
-                Text(
-                  school.phone,
-                  style: GoogleFonts.cairo(
-                    fontSize: 14,
-                    color: Colors.grey[600],
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Icon(Icons.email, size: 16, color: Colors.grey[500]),
-                const SizedBox(width: 4),
-                Expanded(
-                  child: Text(
-                    school.email,
-                    style: GoogleFonts.cairo(
-                      fontSize: 14,
-                      color: Colors.grey[600],
+                  const SizedBox(width: 16),
+                  Icon(Icons.email, size: 16, color: Colors.grey[500]),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Text(
+                      school.email,
+                      style: GoogleFonts.cairo(
+                        fontSize: 14,
+                        color: Colors.grey[600],
+                      ),
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    overflow: TextOverflow.ellipsis,
                   ),
-                ),
-              ],
-            ),
-          ],
+                ],
+              ),
+            ],
+          ),
         ),
       ),
+    );
+  }
+
+  void _showAddStudentSheet(School school) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppConfig.cardColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+        return Padding(
+          padding: EdgeInsets.only(bottom: bottomInset),
+          child: DraggableScrollableSheet(
+            expand: false,
+            initialChildSize: 0.75,
+            minChildSize: 0.5,
+            maxChildSize: 0.95,
+            builder: (context, scrollController) {
+              return SingleChildScrollView(
+                controller: scrollController,
+                padding: const EdgeInsets.all(AppConfig.spacingMD),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            'إضافة طالب إلى ${school.name}',
+                            style: GoogleFonts.cairo(
+                              fontSize: AppConfig.fontSizeLarge,
+                              fontWeight: FontWeight.bold,
+                              color: AppConfig.textPrimaryColor,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close),
+                          onPressed: () => Navigator.pop(context),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: AppConfig.spacingMD),
+                    AddStudentForm(school: school),
+                  ],
+                ),
+              );
+            },
+          ),
+        );
+      },
     );
   }
 
@@ -343,7 +438,9 @@ class _SchoolsListPageState extends State<SchoolsListPage> {
             onPressed: () async {
               final currentContext = context;
               Navigator.of(currentContext).pop();
-              final success = await SchoolService.instance.deleteSchool(school.id);
+              final success = await SchoolService.instance.deleteSchool(
+                school.id,
+              );
               if (mounted && currentContext.mounted) {
                 if (success) {
                   ScaffoldMessenger.of(currentContext).showSnackBar(

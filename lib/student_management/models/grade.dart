@@ -157,9 +157,9 @@ class Grade {
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     return other is Grade &&
-           other.studentId == studentId &&
-           other.subject == subject &&
-           other.date == date;
+        other.studentId == studentId &&
+        other.subject == subject &&
+        other.date == date;
   }
 
   @override

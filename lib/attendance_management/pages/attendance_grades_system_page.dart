@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:school_app/core/app_config.dart';
-import 'package:school_app/school_management/models/class_group.dart';
 import 'package:school_app/school_management/models/school.dart';
 import 'package:school_app/school_management/services/school_service.dart';
 import 'package:school_app/student_management/services/student_service.dart';
-import 'package:logging/logging.dart';
+import 'package:uuid/uuid.dart';
 
-final _logger = Logger('AttendanceGradesSystemPage');
+ 
 
 class AttendanceGradesSystemPage extends StatefulWidget {
   const AttendanceGradesSystemPage({super.key});
 
   @override
-  State<AttendanceGradesSystemPage> createState() => _AttendanceGradesSystemPageState();
+  State<AttendanceGradesSystemPage> createState() =>
+      _AttendanceGradesSystemPageState();
 }
 
 class _AttendanceGradesSystemPageState extends State<AttendanceGradesSystemPage>
@@ -22,14 +22,13 @@ class _AttendanceGradesSystemPageState extends State<AttendanceGradesSystemPage>
   late AnimationController _fadeController;
   late Animation<double> _fadeAnimation;
   List<School> _schools = [];
-  List<ClassGroup> _classGroups = [];
   School? _selectedSchool;
-  ClassGroup? _selectedClassGroup;
   List<Student> _attendanceStudents = [];
   List<Student> _gradeStudents = [];
   final Map<String, String> _attendanceStatus = {};
   final Map<String, double> _gradeInputs = {};
   bool _isLoading = true;
+  bool _attendanceConfirmed = false;
 
   @override
   void initState() {
@@ -44,10 +43,9 @@ class _AttendanceGradesSystemPageState extends State<AttendanceGradesSystemPage>
       vsync: this,
     );
 
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(parent: _fadeController, curve: Curves.easeInOut));
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _fadeController, curve: Curves.easeInOut),
+    );
 
     _fadeController.forward();
 
@@ -66,43 +64,21 @@ class _AttendanceGradesSystemPageState extends State<AttendanceGradesSystemPage>
     // Get all schools
     final schools = await SchoolService.instance.getSchools();
     final selectedSchool = schools.isNotEmpty ? schools.first : null;
-    
-    // Get class groups for the selected school
-    final classGroups = selectedSchool != null
-        ? await _getClassGroupsForSchool(selectedSchool.id)
-        : <ClassGroup>[];
-    final selectedGroup = classGroups.isNotEmpty ? classGroups.first : null;
-    // الحصول على الطلاب حسب الصف المحدد
-    final students = selectedGroup != null
-        ? await StudentService().getStudentsByClassGroup(selectedGroup.id)
+
+    // الحصول على جميع الطلاب حسب المدرسة فقط
+    final students = selectedSchool != null
+        ? await StudentService().getStudentsBySchool(selectedSchool.id)
         : <Student>[];
 
     setState(() {
       _schools = schools;
-      _classGroups = classGroups;
       _selectedSchool = selectedSchool;
-      _selectedClassGroup = selectedGroup;
       _attendanceStudents = students;
       _gradeStudents = students;
       _initializeAttendanceStatus();
       _initializeGradeInputs();
       _isLoading = false;
     });
-  }
-
-  Future<List<ClassGroup>> _getClassGroupsForSchool(String schoolId) async {
-    try {
-      final stages = await SchoolService.instance.getStagesBySchool(schoolId);
-      final groups = <ClassGroup>[];
-      for (var stage in stages) {
-        final stageGroups = await SchoolService.instance.getClassGroupsByStage(stage.id);
-        groups.addAll(stageGroups);
-      }
-      return groups;
-    } catch (e) {
-      _logger.severe('Error getting class groups for school', e);
-      return [];
-    }
   }
 
   Future<void> _onSchoolChanged(String? schoolId) async {
@@ -114,8 +90,6 @@ class _AttendanceGradesSystemPageState extends State<AttendanceGradesSystemPage>
 
     setState(() {
       _selectedSchool = school;
-      _classGroups = [];
-      _selectedClassGroup = null;
       _attendanceStudents = [];
       _gradeStudents = [];
       _attendanceStatus.clear();
@@ -123,48 +97,7 @@ class _AttendanceGradesSystemPageState extends State<AttendanceGradesSystemPage>
       _isLoading = true;
     });
 
-    final groups = await _getClassGroupsForSchool(schoolId);
-    final initialGroup = groups.isNotEmpty ? groups.first : null;
-
-    setState(() {
-      _classGroups = groups;
-      _selectedClassGroup = initialGroup;
-    });
-
-    if (initialGroup != null) {
-      await _loadStudentsForClass(initialGroup.id);
-    } else {
-      setState(() {
-        _isLoading = false;
-      });
-    }
-  }
-
-  Future<void> _onClassChanged(String? classId) async {
-    if (classId == null) {
-      return;
-    }
-
-    final group = _classGroups.firstWhere((g) => g.id == classId, orElse: () => _classGroups.first);
-
-    setState(() {
-      _selectedClassGroup = group;
-    });
-
-    await _loadStudentsForClass(group.id);
-  }
-
-  Future<void> _loadStudentsForClass(String classGroupId) async {
-    setState(() {
-      _isLoading = true;
-      _attendanceStudents = [];
-      _gradeStudents = [];
-      _attendanceStatus.clear();
-      _gradeInputs.clear();
-    });
-
-    final students = await StudentService().getStudentsByClassGroup(classGroupId);
-
+    final students = await StudentService().getStudentsBySchool(schoolId);
     setState(() {
       _attendanceStudents = students;
       _gradeStudents = students;
@@ -173,6 +106,7 @@ class _AttendanceGradesSystemPageState extends State<AttendanceGradesSystemPage>
       _isLoading = false;
     });
   }
+  // تم إزالة منطق الشُعب بالكامل: التحميل حسب المدرسة فقط
 
   void _initializeAttendanceStatus() {
     for (var student in _attendanceStudents) {
@@ -186,7 +120,35 @@ class _AttendanceGradesSystemPageState extends State<AttendanceGradesSystemPage>
     }
   }
 
-  void _saveAttendance() {
+  Future<void> _saveAttendance() async {
+    if (_selectedSchool == null || _attendanceStudents.isEmpty) return;
+    final service = StudentService();
+    final now = DateTime.now();
+    await Future.wait(
+      _attendanceStudents.map((student) {
+        final status =
+            _attendanceStatus[student.id] ?? AppConfig.attendancePresent;
+        return service.recordAttendance(
+          Attendance(
+            id: const Uuid().v4(),
+            studentId: student.id,
+            schoolId: _selectedSchool!.id,
+            date: DateTime(now.year, now.month, now.day),
+            status: status,
+            notes: null,
+            recordedBy: 'user',
+            recordedAt: now,
+            checkInTime: null,
+            checkOutTime: null,
+            additionalData: {},
+          ),
+        );
+      }),
+    );
+
+    if (!mounted) return;
+    if (!context.mounted) return;
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
@@ -211,9 +173,137 @@ class _AttendanceGradesSystemPageState extends State<AttendanceGradesSystemPage>
         margin: const EdgeInsets.all(16),
       ),
     );
+    setState(() {});
   }
 
-  void _saveGrades() {
+  Future<bool> _confirmAction({
+    required String title,
+    required String message,
+    String confirmText = 'تأكيد',
+    String cancelText = 'إلغاء',
+  }) async {
+    final result = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppConfig.borderRadius),
+          ),
+          titlePadding: const EdgeInsets.only(
+            top: AppConfig.spacingMD,
+            right: AppConfig.spacingMD,
+            left: AppConfig.spacingMD,
+            bottom: AppConfig.spacingXS,
+          ),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: AppConfig.spacingMD,
+            vertical: AppConfig.spacingSM,
+          ),
+          actionsPadding: const EdgeInsets.only(
+            right: AppConfig.spacingMD,
+            left: AppConfig.spacingMD,
+            bottom: AppConfig.spacingSM,
+          ),
+          title: Row(
+            children: [
+              const Icon(
+                Icons.help_outline,
+                color: AppConfig.primaryColor,
+                size: 20,
+              ),
+              const SizedBox(width: AppConfig.spacingSM),
+              Expanded(
+                child: Text(
+                  title,
+                  style: GoogleFonts.cairo(
+                    fontSize: AppConfig.fontSizeMedium,
+                    fontWeight: FontWeight.w700,
+                    color: AppConfig.textPrimaryColor,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          content: Text(
+            message,
+            style: GoogleFonts.cairo(
+              fontSize: AppConfig.fontSizeSmall,
+              color: AppConfig.textSecondaryColor,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              style: TextButton.styleFrom(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppConfig.spacingMD,
+                  vertical: AppConfig.spacingXS,
+                ),
+              ),
+              child: Text(
+                cancelText,
+                style: GoogleFonts.cairo(
+                  fontSize: AppConfig.fontSizeSmall,
+                  color: AppConfig.textSecondaryColor,
+                ),
+              ),
+            ),
+            FilledButton.icon(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: FilledButton.styleFrom(
+                backgroundColor: AppConfig.primaryColor,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppConfig.spacingMD,
+                  vertical: AppConfig.spacingXS,
+                ),
+              ),
+              icon: const Icon(Icons.check, size: 18),
+              label: Text(
+                confirmText,
+                style: GoogleFonts.cairo(
+                  fontSize: AppConfig.fontSizeSmall,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+    return result ?? false;
+  }
+
+  Future<void> _saveGrades() async {
+    if (_selectedSchool == null || _gradeStudents.isEmpty) return;
+    final service = StudentService();
+    final now = DateTime.now();
+    await Future.wait(
+      _gradeStudents.map((student) {
+        final score = _gradeInputs[student.id] ?? 0.0;
+        return service.addGrade(
+          Grade(
+            id: const Uuid().v4(),
+            studentId: student.id,
+            schoolId: _selectedSchool!.id,
+            subject: 'عام',
+            gradeType: 'exam',
+            score: score,
+            maxScore: 100,
+            date: DateTime(now.year, now.month, now.day),
+            recordedBy: 'user',
+            recordedAt: now,
+            notes: null,
+            additionalData: {},
+          ),
+        );
+      }),
+    );
+
+    if (!mounted) return;
+    if (!context.mounted) return;
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
@@ -238,6 +328,7 @@ class _AttendanceGradesSystemPageState extends State<AttendanceGradesSystemPage>
         margin: const EdgeInsets.all(16),
       ),
     );
+    setState(() {});
   }
 
   Widget _buildSelectionCard() {
@@ -287,40 +378,6 @@ class _AttendanceGradesSystemPageState extends State<AttendanceGradesSystemPage>
             onChanged: (value) {
               _onSchoolChanged(value);
             },
-          ),
-          const SizedBox(height: AppConfig.spacingMD),
-          DropdownButtonFormField<String>(
-            initialValue: _selectedClassGroup?.id,
-            decoration: InputDecoration(
-              labelText: 'اختر الشعبة',
-              labelStyle: GoogleFonts.cairo(
-                color: AppConfig.textSecondaryColor,
-              ),
-              filled: true,
-              fillColor: AppConfig.surfaceColor,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(AppConfig.borderRadius),
-                borderSide: BorderSide.none,
-              ),
-            ),
-            items: _classGroups
-                .map(
-                  (group) => DropdownMenuItem(
-                    value: group.id,
-                    child: Text(
-                      group.name,
-                      style: GoogleFonts.cairo(
-                        color: AppConfig.textPrimaryColor,
-                      ),
-                    ),
-                  ),
-                )
-                .toList(),
-            onChanged: _classGroups.isEmpty
-                ? null
-                : (value) {
-                    _onClassChanged(value);
-                  },
           ),
         ],
       ),
@@ -384,10 +441,7 @@ class _AttendanceGradesSystemPageState extends State<AttendanceGradesSystemPage>
         opacity: _fadeAnimation,
         child: TabBarView(
           controller: _tabController,
-          children: [
-            _buildAttendanceTab(),
-            _buildGradesTab(),
-          ],
+          children: [_buildAttendanceTab(), _buildGradesTab()],
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
@@ -490,42 +544,81 @@ class _AttendanceGradesSystemPageState extends State<AttendanceGradesSystemPage>
                   itemCount: _attendanceStudents.length,
                   itemBuilder: (context, index) {
                     final student = _attendanceStudents[index];
-                    final currentStatus = _attendanceStatus[student.id] ?? AppConfig.attendancePresent;
+                    final currentStatus =
+                        _attendanceStatus[student.id] ??
+                        AppConfig.attendancePresent;
                     return _buildStudentAttendanceItem(student, currentStatus);
                   },
+                ),
+                const SizedBox(height: AppConfig.spacingMD),
+                const Divider(),
+                Row(
+                  children: [
+                    Expanded(
+                      child: CheckboxListTile(
+                        contentPadding: EdgeInsets.zero,
+                        dense: true,
+                        value: _attendanceConfirmed,
+                        onChanged: (v) {
+                          setState(() {
+                            _attendanceConfirmed = v ?? false;
+                          });
+                        },
+                        title: Text(
+                          'تأكيد البيانات قبل الحفظ',
+                          style: GoogleFonts.cairo(
+                            fontSize: AppConfig.fontSizeSmall,
+                            color: AppConfig.textSecondaryColor,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        controlAffinity: ListTileControlAffinity.leading,
+                      ),
+                    ),
+                    const SizedBox(width: AppConfig.spacingSM),
+                    ElevatedButton.icon(
+                      onPressed:
+                          (!_attendanceConfirmed || _attendanceStudents.isEmpty)
+                          ? null
+                          : () async {
+                              // يمكن إضافة حوار تأكيد إضافي إذا رغبت
+                              final ok = await _confirmAction(
+                                title: 'تأكيد الحفظ',
+                                message: 'هل تريد حفظ سجل الحضور لهذا اليوم؟',
+                              );
+                              if (ok) _saveAttendance();
+                            },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppConfig.successColor,
+                        foregroundColor: Colors.white,
+                        elevation: AppConfig.buttonElevation,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppConfig.spacingMD,
+                          vertical: AppConfig.spacingXS,
+                        ),
+                        minimumSize: Size.fromHeight(36),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(
+                            AppConfig.borderRadius / 2,
+                          ),
+                        ),
+                      ),
+                      icon: const Icon(Icons.save, size: 16),
+                      label: Text(
+                        'حفظ',
+                        style: GoogleFonts.cairo(
+                          fontSize: AppConfig.fontSizeSmall,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
 
-          const SizedBox(height: AppConfig.spacingLG),
-
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: _attendanceStudents.isEmpty ? null : _saveAttendance,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppConfig.successColor,
-                foregroundColor: Colors.white,
-                elevation: AppConfig.buttonElevation,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppConfig.spacingLG,
-                  vertical: AppConfig.spacingMD,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppConfig.borderRadius),
-                ),
-              ),
-              icon: const Icon(Icons.save),
-              label: Text(
-                'حفظ سجل الحضور',
-                style: GoogleFonts.cairo(
-                  fontSize: AppConfig.fontSizeLarge,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
+          // تمت إزالة زر الحفظ الخارجي ليكون الحفظ في أسفل القائمة داخل البطاقة
         ],
       ),
     );
@@ -594,25 +687,36 @@ class _AttendanceGradesSystemPageState extends State<AttendanceGradesSystemPage>
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
-              onPressed: _gradeStudents.isEmpty ? null : _saveGrades,
+              onPressed: _gradeStudents.isEmpty
+                  ? null
+                  : () async {
+                      final ok = await _confirmAction(
+                        title: 'تأكيد الحفظ',
+                        message: 'هل تريد حفظ الدرجات لهذا اليوم؟',
+                      );
+                      if (ok) _saveGrades();
+                    },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppConfig.primaryColor,
                 foregroundColor: Colors.white,
                 elevation: AppConfig.buttonElevation,
                 padding: const EdgeInsets.symmetric(
-                  horizontal: AppConfig.spacingLG,
-                  vertical: AppConfig.spacingMD,
+                  horizontal: AppConfig.spacingMD,
+                  vertical: AppConfig.spacingSM,
                 ),
+                minimumSize: Size.fromHeight(40),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppConfig.borderRadius),
+                  borderRadius: BorderRadius.circular(
+                    AppConfig.borderRadius / 1.5,
+                  ),
                 ),
               ),
-              icon: const Icon(Icons.save),
+              icon: const Icon(Icons.save, size: 18),
               label: Text(
                 'حفظ الدرجات',
                 style: GoogleFonts.cairo(
-                  fontSize: AppConfig.fontSizeLarge,
-                  fontWeight: FontWeight.bold,
+                  fontSize: AppConfig.fontSizeMedium,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
             ),
@@ -622,16 +726,18 @@ class _AttendanceGradesSystemPageState extends State<AttendanceGradesSystemPage>
     );
   }
 
-  Widget _buildStatCard(String title, String value, IconData icon, Color color) {
+  Widget _buildStatCard(
+    String title,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
     return Container(
       padding: const EdgeInsets.all(AppConfig.spacingMD),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(AppConfig.borderRadius),
-        border: Border.all(
-          color: color.withValues(alpha: 0.3),
-          width: 1,
-        ),
+        border: Border.all(color: color.withValues(alpha: 0.3), width: 1),
       ),
       child: Column(
         children: [
@@ -661,7 +767,9 @@ class _AttendanceGradesSystemPageState extends State<AttendanceGradesSystemPage>
   Widget _buildStudentAttendanceItem(Student student, String status) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final dropdownWidth = (constraints.maxWidth * 0.32).clamp(140.0, 220.0).toDouble();
+        final dropdownWidth = (constraints.maxWidth * 0.32)
+            .clamp(140.0, 220.0)
+            .toDouble();
         return Container(
           margin: const EdgeInsets.only(bottom: AppConfig.spacingSM),
           padding: const EdgeInsets.all(AppConfig.spacingMD),
@@ -766,7 +874,9 @@ class _AttendanceGradesSystemPageState extends State<AttendanceGradesSystemPage>
   Widget _buildStudentGradeItem(Student student, double gradeValue) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final inputWidth = (constraints.maxWidth * 0.24).clamp(80.0, 160.0).toDouble();
+        final inputWidth = (constraints.maxWidth * 0.24)
+            .clamp(80.0, 160.0)
+            .toDouble();
         return Container(
           margin: const EdgeInsets.only(bottom: AppConfig.spacingSM),
           padding: const EdgeInsets.all(AppConfig.spacingMD),
@@ -816,14 +926,18 @@ class _AttendanceGradesSystemPageState extends State<AttendanceGradesSystemPage>
               SizedBox(
                 width: inputWidth,
                 child: TextField(
-                  controller: TextEditingController(text: gradeValue.toStringAsFixed(0)),
+                  controller: TextEditingController(
+                    text: gradeValue.toStringAsFixed(0),
+                  ),
                   decoration: InputDecoration(
                     hintText: 'الدرجة',
                     hintStyle: GoogleFonts.cairo(
                       color: AppConfig.textSecondaryColor,
                     ),
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(AppConfig.borderRadius / 2),
+                      borderRadius: BorderRadius.circular(
+                        AppConfig.borderRadius / 2,
+                      ),
                     ),
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: AppConfig.spacingSM,

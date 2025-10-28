@@ -6,19 +6,18 @@ import 'package:school_app/school_management/services/school_service.dart';
 import 'package:school_app/student_management/services/student_service.dart';
 
 class ReportsPage extends StatefulWidget {
-  const ReportsPage({super.key});
+  final VoidCallback? onBack;
+  const ReportsPage({super.key, this.onBack});
 
   @override
   State<ReportsPage> createState() => _ReportsPageState();
 }
 
-class _ReportsPageState extends State<ReportsPage> with TickerProviderStateMixin {
+class _ReportsPageState extends State<ReportsPage>
+    with TickerProviderStateMixin {
   final StudentService _studentService = StudentService();
   String _selectedReportType = 'تقرير الأداء الشهري';
-  String _selectedClass = 'الكل';
   String _selectedPeriod = 'الشهر الحالي';
-  bool _includeCharts = true;
-  bool _includeDetails = true;
   bool _isGenerating = false;
   bool _isDataLoading = true;
   bool _isStudentsLoading = false;
@@ -252,7 +251,9 @@ class _ReportsPageState extends State<ReportsPage> with TickerProviderStateMixin
 
   void _selectAllStudents() {
     setState(() {
-      _selectedStudentIds = _availableStudents.map((student) => student.id).toSet();
+      _selectedStudentIds = _availableStudents
+          .map((student) => student.id)
+          .toSet();
     });
   }
 
@@ -262,7 +263,11 @@ class _ReportsPageState extends State<ReportsPage> with TickerProviderStateMixin
     });
   }
 
-  void _showStatusMessage(String message, Color backgroundColor, IconData icon) {
+  void _showStatusMessage(
+    String message,
+    Color backgroundColor,
+    IconData icon,
+  ) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
@@ -314,13 +319,21 @@ class _ReportsPageState extends State<ReportsPage> with TickerProviderStateMixin
         shadowColor: AppConfig.primaryColor.withValues(alpha: 0.3),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () {
+            if (widget.onBack != null) {
+              widget.onBack!();
+            } else {
+              Navigator.of(context).maybePop();
+            }
+          },
         ),
       ),
       body: _isDataLoading
           ? const Center(
               child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(AppConfig.primaryColor),
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  AppConfig.primaryColor,
+                ),
               ),
             )
           : SingleChildScrollView(
@@ -388,15 +401,6 @@ class _ReportsPageState extends State<ReportsPage> with TickerProviderStateMixin
                     child: Column(
                       children: [
                         _buildDropdownOption(
-                          'الصف الدراسي',
-                          _selectedClass,
-                          ['الكل', 'الصف الأول أ', 'الصف الأول ب', 'الصف الثاني أ'],
-                          (value) => setState(() => _selectedClass = value!),
-                        ),
-
-                        const SizedBox(height: AppConfig.spacingMD),
-
-                        _buildDropdownOption(
                           'الفترة الزمنية',
                           _selectedPeriod,
                           [
@@ -412,28 +416,6 @@ class _ReportsPageState extends State<ReportsPage> with TickerProviderStateMixin
                   ),
 
                   const SizedBox(height: AppConfig.spacingLG),
-
-                  // خيارات التقرير
-                  _buildSectionCard(
-                    title: 'خيارات التقرير',
-                    icon: Icons.settings_outlined,
-                    color: AppConfig.secondaryColor,
-                    child: Column(
-                      children: [
-                        _buildCheckboxOption(
-                          'تضمين الرسوم البيانية',
-                          _includeCharts,
-                          (value) => setState(() => _includeCharts = value!),
-                        ),
-
-                        _buildCheckboxOption(
-                          'تضمين التفاصيل الكاملة',
-                          _includeDetails,
-                          (value) => setState(() => _includeDetails = value!),
-                        ),
-                      ],
-                    ),
-                  ),
 
                   const SizedBox(height: AppConfig.spacingLG),
 
@@ -492,9 +474,10 @@ class _ReportsPageState extends State<ReportsPage> with TickerProviderStateMixin
                                       height: 20,
                                       child: CircularProgressIndicator(
                                         strokeWidth: 2,
-                                        valueColor: AlwaysStoppedAnimation<Color>(
-                                          Colors.white,
-                                        ),
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                              Colors.white,
+                                            ),
                                       ),
                                     ),
                                     const SizedBox(width: 12),
@@ -510,7 +493,10 @@ class _ReportsPageState extends State<ReportsPage> with TickerProviderStateMixin
                               : Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    const Icon(Icons.analytics_outlined, size: 24),
+                                    const Icon(
+                                      Icons.analytics_outlined,
+                                      size: 24,
+                                    ),
                                     const SizedBox(width: 12),
                                     Text(
                                       'إنشاء التقرير',
@@ -597,7 +583,9 @@ class _ReportsPageState extends State<ReportsPage> with TickerProviderStateMixin
           if (_isStudentsLoading)
             const Center(
               child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(AppConfig.primaryColor),
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  AppConfig.primaryColor,
+                ),
               ),
             )
           else if (_availableStudents.isEmpty)
@@ -621,9 +609,7 @@ class _ReportsPageState extends State<ReportsPage> with TickerProviderStateMixin
                     ),
                     child: Text(
                       'تحديد الكل',
-                      style: GoogleFonts.cairo(
-                        fontWeight: FontWeight.w600,
-                      ),
+                      style: GoogleFonts.cairo(fontWeight: FontWeight.w600),
                     ),
                   ),
                   TextButton(
@@ -633,9 +619,7 @@ class _ReportsPageState extends State<ReportsPage> with TickerProviderStateMixin
                     ),
                     child: Text(
                       'مسح التحديد',
-                      style: GoogleFonts.cairo(
-                        fontWeight: FontWeight.w600,
-                      ),
+                      style: GoogleFonts.cairo(fontWeight: FontWeight.w600),
                     ),
                   ),
                 ],
@@ -668,7 +652,7 @@ class _ReportsPageState extends State<ReportsPage> with TickerProviderStateMixin
         const SizedBox(height: AppConfig.spacingSM),
         Container(
           decoration: BoxDecoration(
-            border: Border.all(color: AppConfig.borderColor, width: 1),
+            border: Border.all(color: AppConfig.borderColor, width: 1.0),
             borderRadius: BorderRadius.circular(AppConfig.borderRadius / 2),
           ),
           child: DropdownButton<String>(
@@ -721,7 +705,7 @@ class _ReportsPageState extends State<ReportsPage> with TickerProviderStateMixin
           color: isSelected
               ? AppConfig.primaryColor.withValues(alpha: 0.3)
               : AppConfig.borderColor,
-          width: 1,
+          width: 1.0,
         ),
       ),
       child: Material(
@@ -745,14 +729,13 @@ class _ReportsPageState extends State<ReportsPage> with TickerProviderStateMixin
                 const SizedBox(width: 12),
                 CircleAvatar(
                   radius: 22,
-                  backgroundColor:
-                      AppConfig.primaryColor.withValues(alpha: 0.1),
+                  backgroundColor: AppConfig.primaryColor.withValues(
+                    alpha: 0.1,
+                  ),
                   foregroundColor: AppConfig.primaryColor,
                   child: Text(
                     student.initials,
-                    style: GoogleFonts.cairo(
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: GoogleFonts.cairo(fontWeight: FontWeight.bold),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -820,7 +803,7 @@ class _ReportsPageState extends State<ReportsPage> with TickerProviderStateMixin
             offset: const Offset(0, 2),
           ),
         ],
-        border: Border.all(color: color.withValues(alpha: 0.1), width: 1),
+        border: Border.all(color: color.withValues(alpha: 0.1), width: 1.0),
       ),
       child: Padding(
         padding: const EdgeInsets.all(AppConfig.spacingLG),
@@ -896,7 +879,7 @@ class _ReportsPageState extends State<ReportsPage> with TickerProviderStateMixin
             borderRadius: BorderRadius.circular(AppConfig.borderRadius / 2),
             border: Border.all(
               color: evaluationColor.withValues(alpha: 0.4),
-              width: 1,
+              width: 1.0,
             ),
           ),
           child: Row(
@@ -1003,7 +986,7 @@ class _ReportsPageState extends State<ReportsPage> with TickerProviderStateMixin
                 color: isSelected
                     ? AppConfig.primaryColor.withValues(alpha: 0.3)
                     : AppConfig.borderColor,
-                width: 1,
+                width: 1.0,
               ),
             ),
             child: Row(
@@ -1096,36 +1079,6 @@ class _ReportsPageState extends State<ReportsPage> with TickerProviderStateMixin
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildCheckboxOption(
-    String label,
-    bool value,
-    ValueChanged<bool?> onChanged,
-  ) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: AppConfig.spacingSM),
-      child: Row(
-        children: [
-          Checkbox(
-            value: value,
-            onChanged: onChanged,
-            activeColor: AppConfig.primaryColor,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(4),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Text(
-            label,
-            style: GoogleFonts.cairo(
-              fontSize: AppConfig.fontSizeMedium,
-              color: AppConfig.textPrimaryColor,
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

@@ -37,10 +37,7 @@ class StatsCard extends StatelessWidget {
             offset: const Offset(0, 1),
           ),
         ],
-        border: Border.all(
-          color: color.withValues(alpha: 0.1),
-          width: 1,
-        ),
+        border: Border.all(color: color.withValues(alpha: 0.1), width: 1),
       ),
       child: Material(
         color: Colors.transparent,
@@ -62,13 +59,11 @@ class StatsCard extends StatelessWidget {
                       padding: const EdgeInsets.all(AppConfig.spacingSM),
                       decoration: BoxDecoration(
                         color: color.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(AppConfig.borderRadius / 2),
+                        borderRadius: BorderRadius.circular(
+                          AppConfig.borderRadius / 2,
+                        ),
                       ),
-                      child: Icon(
-                        icon,
-                        color: color,
-                        size: 24,
-                      ),
+                      child: Icon(icon, color: color, size: 24),
                     ),
                     const Spacer(),
                     Text(
@@ -104,7 +99,9 @@ class StatsCard extends StatelessWidget {
                   ),
                   decoration: BoxDecoration(
                     color: AppConfig.successColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(AppConfig.borderRadius / 2),
+                    borderRadius: BorderRadius.circular(
+                      AppConfig.borderRadius / 2,
+                    ),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,

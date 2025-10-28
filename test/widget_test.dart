@@ -11,7 +11,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:school_app/main.dart';
 
 void main() {
-  testWidgets('Smart Teacher App loads successfully', (WidgetTester tester) async {
+  testWidgets('Smart Teacher App loads successfully', (
+    WidgetTester tester,
+  ) async {
     // Build our app and trigger a frame.
     await tester.pumpWidget(const SmartTeacherApp());
 

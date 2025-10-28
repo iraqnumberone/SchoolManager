@@ -37,7 +37,10 @@ class AppTheme {
         backgroundColor: AppConfig.primaryColor,
         foregroundColor: Colors.white,
         elevation: AppConfig.buttonElevation,
-        padding: const EdgeInsets.symmetric(horizontal: AppConfig.spacingLG, vertical: AppConfig.spacingMD),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppConfig.spacingLG,
+          vertical: AppConfig.spacingMD,
+        ),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppConfig.borderRadius),
         ),
@@ -95,7 +98,9 @@ class AppTheme {
 
     // تخصيص قوائم البيانات
     dataTableTheme: DataTableThemeData(
-      headingRowColor: WidgetStateColor.resolveWith((states) => AppConfig.primaryColor.withValues(alpha: 0.1)),
+      headingRowColor: WidgetStateColor.resolveWith(
+        (states) => AppConfig.primaryColor.withValues(alpha: 0.1),
+      ),
       headingTextStyle: GoogleFonts.cairo(
         fontWeight: FontWeight.bold,
         color: AppConfig.primaryColor,
@@ -227,7 +232,10 @@ class AppTheme {
         backgroundColor: AppConfig.primaryColor,
         foregroundColor: Colors.white,
         elevation: AppConfig.buttonElevation,
-        padding: const EdgeInsets.symmetric(horizontal: AppConfig.spacingLG, vertical: AppConfig.spacingMD),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppConfig.spacingLG,
+          vertical: AppConfig.spacingMD,
+        ),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppConfig.borderRadius),
         ),
@@ -285,7 +293,9 @@ class AppTheme {
 
     // تخصيص قوائم البيانات
     dataTableTheme: DataTableThemeData(
-      headingRowColor: WidgetStateColor.resolveWith((states) => AppConfig.primaryColor.withValues(alpha: 0.2)),
+      headingRowColor: WidgetStateColor.resolveWith(
+        (states) => AppConfig.primaryColor.withValues(alpha: 0.2),
+      ),
       headingTextStyle: GoogleFonts.cairo(
         fontWeight: FontWeight.bold,
         color: Colors.white,

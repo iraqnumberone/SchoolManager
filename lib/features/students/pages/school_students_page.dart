@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:school_app/core/app_config.dart';
 import 'package:school_app/school_management/models/school.dart';
+import 'package:school_app/school_management/services/school_service.dart';
+import 'package:school_app/student_management/models/student.dart';
+import 'package:uuid/uuid.dart';
 
 class SchoolStudentsPage extends StatefulWidget {
   final School school;
@@ -28,52 +31,48 @@ class _SchoolStudentsPageState extends State<SchoolStudentsPage> {
       _isLoading = true;
     });
 
-    // محاكاة تحميل بيانات الطلاب للمدرسة المحددة
-    await Future.delayed(const Duration(seconds: 1));
+    try {
+      // Load real students for this school
+      final students = await SchoolService.instance.getStudentsBySchool(
+        widget.school.id,
+      );
 
-    // بيانات تجريبية للطلاب
-    final demoStudents = [
-      {
-        'id': 'student_1',
-        'name': 'أحمد محمد علي',
-        'class': 'الصف الأول - شعبة أ',
-        'grade': 'ممتاز',
-        'attendance': 95,
-      },
-      {
-        'id': 'student_2',
-        'name': 'فاطمة أحمد حسن',
-        'class': 'الصف الأول - شعبة أ',
-        'grade': 'جيد جداً',
-        'attendance': 92,
-      },
-      {
-        'id': 'student_3',
-        'name': 'محمد علي أحمد',
-        'class': 'الصف الأول - شعبة ب',
-        'grade': 'جيد',
-        'attendance': 88,
-      },
-      {
-        'id': 'student_4',
-        'name': 'سارة محمد علي',
-        'class': 'الصف الثاني - شعبة أ',
-        'grade': 'ممتاز',
-        'attendance': 97,
-      },
-      {
-        'id': 'student_5',
-        'name': 'علي أحمد محمد',
-        'class': 'الصف الثاني - شعبة ب',
-        'grade': 'جيد جداً',
-        'attendance': 90,
-      },
-    ];
+      // Map each student to UI map, resolving class group name
+      final List<Map<String, dynamic>> items = [];
+      for (final Student s in students) {
+        String classLabel = '';
+        try {
+          final group = await SchoolService.instance.getClassGroupById(
+            s.classGroupId,
+          );
+          if (group != null) {
+            classLabel = group.name;
+          }
+        } catch (_) {}
 
-    setState(() {
-      _students = demoStudents;
-      _isLoading = false;
-    });
+        items.add({
+          'id': s.id,
+          'name': s.fullName.isNotEmpty
+              ? s.fullName
+              : '${s.firstName} ${s.lastName}',
+          'class': classLabel.isNotEmpty ? classLabel : 'غير محدد',
+          'grade': '-',
+          'attendance': 0,
+        });
+      }
+
+      if (!mounted) return;
+      setState(() {
+        _students = items;
+        _isLoading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _students = [];
+        _isLoading = false;
+      });
+    }
   }
 
   List<Map<String, dynamic>> get _filteredStudents {
@@ -500,28 +499,29 @@ class _SchoolStudentsPageState extends State<SchoolStudentsPage> {
   }
 
   void _deleteStudent(Map<String, dynamic> student) {
-    setState(() {
-      _students.remove(student);
-    });
+    () async {
+      await SchoolService.instance.deleteStudent(student['id'] as String);
+      await _loadStudents();
 
-    // عرض رسالة نجاح
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'تم حذف الطالب ${student['name']} بنجاح',
-          style: GoogleFonts.cairo(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'تم حذف الطالب ${student['name']} بنجاح',
+            style: GoogleFonts.cairo(
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          backgroundColor: AppConfig.successColor,
+          duration: const Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppConfig.borderRadius),
           ),
         ),
-        backgroundColor: AppConfig.successColor,
-        duration: const Duration(seconds: 2),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppConfig.borderRadius),
-        ),
-      ),
-    );
+      );
+    }();
   }
 
   void _showEditStudentDialog(Map<String, dynamic> student) {
@@ -545,11 +545,14 @@ class _SchoolStudentsPageState extends State<SchoolStudentsPage> {
     );
   }
 
-  void _showAddStudentDialog() {
-    showDialog(
+  Future<void> _showAddStudentDialog() async {
+    await showDialog(
       context: context,
       builder: (context) => AddStudentDialog(school: widget.school),
     );
+    if (mounted) {
+      await _loadStudents();
+    }
   }
 }
 
@@ -1111,42 +1114,95 @@ class _AddStudentDialogState extends State<AddStudentDialog> {
       _isLoading = true;
     });
 
+    // Ensure stages and groups exist for this school and resolve IDs
+    await SchoolService.instance.ensureDefaultStagesAndGroups(widget.school.id);
+
+    // Resolve stage by selected education level name
+    final stages = await SchoolService.instance.getStagesBySchool(
+      widget.school.id,
+    );
+    final stage = stages.firstWhere(
+      (s) => s.name == _selectedEducationLevel,
+      orElse: () => stages.isNotEmpty ? stages.first : stages.single,
+    );
+
+    // Resolve class group by name like "شعبة أ/ب..."
+    final groups = await SchoolService.instance.getClassGroupsByStage(stage.id);
+    final groupName = 'شعبة $_selectedSection';
+    final group = groups.firstWhere(
+      (g) => g.name == groupName,
+      orElse: () => groups.first,
+    );
+
     // Create full name
     final fullName =
         '${_firstNameController.text.trim()} ${_middleNameController.text.trim()} ${_lastNameController.text.trim()} ${_familyNameController.text.trim()}';
 
-    await Future.delayed(const Duration(seconds: 1));
+    // Build Student model
+    final student = Student(
+      id: const Uuid().v4(),
+      firstName: _firstNameController.text.trim(),
+      lastName: _familyNameController.text.trim(),
+      fullName: fullName,
+      studentId: DateTime.now().millisecondsSinceEpoch.toString(),
+      birthDate: DateTime.now(),
+      gender: 'ذكر',
+      address: '',
+      phone: '',
+      parentPhone: '',
+      schoolId: widget.school.id,
+      stageId: stage.id,
+      classGroupId: group.id,
+      status: 'active',
+      photo: null,
+      enrollmentDate: DateTime.now(),
+      additionalInfo: {},
+    );
 
-    // Create new student
-    final newStudent = {
-      'id': 'student_${DateTime.now().millisecondsSinceEpoch}',
-      'name': fullName,
-      'class':
-          '${widget.school.name} - $_selectedEducationLevel - شعبة $_selectedSection',
-      'grade': 'جيد',
-      'attendance': 0,
-    };
-
-    // Add to parent state
-    if (mounted) {
-      final parentState = context
-          .findAncestorStateOfType<_SchoolStudentsPageState>();
-      if (parentState != null) {
-        parentState._students.add(newStudent);
-        parentState.setState(() {});
-      }
-    }
+    // Persist and check result
+    final bool added = await SchoolService.instance.addStudent(student);
 
     setState(() {
       _isLoading = false;
     });
 
-    if (mounted) {
-      Navigator.of(context).pop();
+    if (!mounted) return;
+    if (!context.mounted) return;
+
+    if (!added) {
+      // Show error and keep dialog open for retry
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'فشل إضافة الطالب. يرجى المحاولة مرة أخرى',
+            style: GoogleFonts.cairo(
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          backgroundColor: AppConfig.errorColor,
+          duration: const Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppConfig.borderRadius),
+          ),
+        ),
+      );
+      return;
     }
 
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
+    // Refresh parent list on success
+    final parentState = context.findAncestorStateOfType<_SchoolStudentsPageState>();
+    await parentState?._loadStudents();
+    if (!mounted) return;
+
+    // Capture messenger before popping to avoid using a disposed context
+    final messenger = ScaffoldMessenger.of(context);
+    Navigator.of(context).pop();
+
+    // Schedule snackbar after pop in next frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      messenger.showSnackBar(
         SnackBar(
           content: Text(
             'تم إضافة الطالب $fullName بنجاح',
@@ -1163,13 +1219,7 @@ class _AddStudentDialogState extends State<AddStudentDialog> {
           ),
         ),
       );
-
-      if (mounted) {
-        context
-            .findAncestorStateOfType<_SchoolStudentsPageState>()
-            ?._loadStudents();
-      }
-    }
+    });
   }
 
   @override

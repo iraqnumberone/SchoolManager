@@ -33,18 +33,24 @@ class _AllStudentsReportsPageState extends State<AllStudentsReportsPage> {
     try {
       // Ensure demo data is initialized
       await _studentService.initializeDemoStudents();
-      
+
       // Generate reports for all students
       final reports = await _studentService.generateAllStudentReports();
-      
+
       // Filter reports based on search query
       final filteredReports = _searchQuery.isEmpty
-        ? reports
-        : reports.where((report) {
-            return report.student.fullName.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-                   report.student.studentId.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-                   report.student.schoolId.toLowerCase().contains(_searchQuery.toLowerCase());
-          }).toList();
+          ? reports
+          : reports.where((report) {
+              return report.student.fullName.toLowerCase().contains(
+                    _searchQuery.toLowerCase(),
+                  ) ||
+                  report.student.studentId.toLowerCase().contains(
+                    _searchQuery.toLowerCase(),
+                  ) ||
+                  report.student.schoolId.toLowerCase().contains(
+                    _searchQuery.toLowerCase(),
+                  );
+            }).toList();
 
       // Sort reports by overall score (highest first)
       filteredReports.sort((a, b) => b.overallScore.compareTo(a.overallScore));
@@ -63,7 +69,9 @@ class _AllStudentsReportsPageState extends State<AllStudentsReportsPage> {
         });
         // Show error message to user
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('حدث خطأ أثناء تحميل التقارير: ${e.toString()}')),
+          SnackBar(
+            content: Text('حدث خطأ أثناء تحميل التقارير: ${e.toString()}'),
+          ),
         );
       }
     }
@@ -124,7 +132,10 @@ class _AllStudentsReportsPageState extends State<AllStudentsReportsPage> {
                   color: AppConfig.textSecondaryColor,
                   fontSize: AppConfig.fontSizeMedium,
                 ),
-                prefixIcon: const Icon(Icons.search, color: AppConfig.textSecondaryColor),
+                prefixIcon: const Icon(
+                  Icons.search,
+                  color: AppConfig.textSecondaryColor,
+                ),
                 filled: true,
                 fillColor: AppConfig.backgroundColor,
                 border: OutlineInputBorder(
@@ -155,7 +166,9 @@ class _AllStudentsReportsPageState extends State<AllStudentsReportsPage> {
               decoration: BoxDecoration(
                 color: AppConfig.cardColor,
                 border: Border(
-                  bottom: BorderSide(color: AppConfig.borderColor.withValues(alpha: 0.3)),
+                  bottom: BorderSide(
+                    color: AppConfig.borderColor.withValues(alpha: 0.3),
+                  ),
                 ),
               ),
               child: Row(
@@ -193,12 +206,12 @@ class _AllStudentsReportsPageState extends State<AllStudentsReportsPage> {
           // قائمة تقارير الطلاب
           Expanded(
             child: _isLoading
-              ? const Center(
-                  child: CircularProgressIndicator(
-                    color: AppConfig.primaryColor,
-                  ),
-                )
-              : _studentReports.isEmpty
+                ? const Center(
+                    child: CircularProgressIndicator(
+                      color: AppConfig.primaryColor,
+                    ),
+                  )
+                : _studentReports.isEmpty
                 ? _buildEmptyState()
                 : ListView.builder(
                     padding: const EdgeInsets.all(AppConfig.spacingMD),
@@ -213,7 +226,12 @@ class _AllStudentsReportsPageState extends State<AllStudentsReportsPage> {
     );
   }
 
-  Widget _buildSummaryCard(String title, String value, IconData icon, Color color) {
+  Widget _buildSummaryCard(
+    String title,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
     return Container(
       padding: const EdgeInsets.all(AppConfig.spacingSM),
       decoration: BoxDecoration(
@@ -251,30 +269,20 @@ class _AllStudentsReportsPageState extends State<AllStudentsReportsPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.people_outline,
-            size: 80,
-            color: Colors.grey[400],
-          ),
+          Icon(Icons.people_outline, size: 80, color: Colors.grey[400]),
           const SizedBox(height: 16),
           Text(
             _searchQuery.isEmpty
                 ? 'لا يوجد طلاب في النظام'
                 : 'لا توجد نتائج للبحث',
-            style: GoogleFonts.cairo(
-              fontSize: 18,
-              color: Colors.grey[600],
-            ),
+            style: GoogleFonts.cairo(fontSize: 18, color: Colors.grey[600]),
           ),
           const SizedBox(height: 8),
           Text(
             _searchQuery.isEmpty
                 ? 'قم بإضافة طلاب لترى تقاريرهم هنا'
                 : 'جرب كلمات بحث مختلفة',
-            style: GoogleFonts.cairo(
-              fontSize: 14,
-              color: Colors.grey[500],
-            ),
+            style: GoogleFonts.cairo(fontSize: 14, color: Colors.grey[500]),
             textAlign: TextAlign.center,
           ),
         ],
@@ -351,10 +359,15 @@ class _AllStudentsReportsPageState extends State<AllStudentsReportsPage> {
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
                     decoration: BoxDecoration(
                       color: report.getEvaluationColor().withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(AppConfig.borderRadius / 2),
+                      borderRadius: BorderRadius.circular(
+                        AppConfig.borderRadius / 2,
+                      ),
                     ),
                     child: Text(
                       report.getEvaluationText(),
@@ -468,7 +481,9 @@ class _AllStudentsReportsPageState extends State<AllStudentsReportsPage> {
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: AppConfig.backgroundColor,
-                  borderRadius: BorderRadius.circular(AppConfig.borderRadius / 2),
+                  borderRadius: BorderRadius.circular(
+                    AppConfig.borderRadius / 2,
+                  ),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -517,7 +532,9 @@ class _AllStudentsReportsPageState extends State<AllStudentsReportsPage> {
 
   double _getOverallAverage() {
     if (_studentReports.isEmpty) return 0.0;
-    final total = _studentReports.map((r) => r.overallScore).reduce((a, b) => a + b);
+    final total = _studentReports
+        .map((r) => r.overallScore)
+        .reduce((a, b) => a + b);
     return total / _studentReports.length;
   }
 

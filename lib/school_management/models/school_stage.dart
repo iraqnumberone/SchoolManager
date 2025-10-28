@@ -17,9 +17,8 @@ class SchoolStage {
     this.isActive = true,
     DateTime? createdAt,
     DateTime? updatedAt,
-  }) : 
-    createdAt = createdAt ?? DateTime.now(),
-    updatedAt = updatedAt ?? DateTime.now();
+  }) : createdAt = createdAt ?? DateTime.now(),
+       updatedAt = updatedAt ?? DateTime.now();
 
   // إنشاء مرحلة من JSON
   factory SchoolStage.fromJson(Map<String, dynamic> json) {
@@ -28,10 +27,18 @@ class SchoolStage {
       schoolId: json['schoolId'].toString(),
       name: json['name']?.toString() ?? '',
       description: json['description']?.toString(),
-      order: json['order'] is int ? json['order'] : int.tryParse(json['order']?.toString() ?? '0') ?? 0,
-      isActive: json['isActive'] == true || (json['isActive'] is int && json['isActive'] == 1),
-      createdAt: json['createdAt'] != null ? DateTime.tryParse(json['createdAt'].toString()) : null,
-      updatedAt: json['updatedAt'] != null ? DateTime.tryParse(json['updatedAt'].toString()) : null,
+      order: json['order'] is int
+          ? json['order']
+          : int.tryParse(json['order']?.toString() ?? '0') ?? 0,
+      isActive:
+          json['isActive'] == true ||
+          (json['isActive'] is int && json['isActive'] == 1),
+      createdAt: json['createdAt'] != null
+          ? DateTime.tryParse(json['createdAt'].toString())
+          : null,
+      updatedAt: json['updatedAt'] != null
+          ? DateTime.tryParse(json['updatedAt'].toString())
+          : null,
     );
   }
 

@@ -150,11 +150,7 @@ class _StudentReportPageState extends State<StudentReportPage>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.error_outline,
-            size: 80,
-            color: Colors.red[300],
-          ),
+          Icon(Icons.error_outline, size: 80, color: Colors.red[300]),
           const SizedBox(height: 20),
           Text(
             'حدث خطأ في إعداد التقرير',
@@ -167,10 +163,7 @@ class _StudentReportPageState extends State<StudentReportPage>
           const SizedBox(height: 10),
           Text(
             error,
-            style: GoogleFonts.cairo(
-              fontSize: 14,
-              color: Colors.grey[600],
-            ),
+            style: GoogleFonts.cairo(fontSize: 14, color: Colors.grey[600]),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 20),
@@ -198,9 +191,7 @@ class _StudentReportPageState extends State<StudentReportPage>
   }
 
   Widget _buildEmptyView() {
-    return const Center(
-      child: Text('لا توجد بيانات متاحة'),
-    );
+    return const Center(child: Text('لا توجد بيانات متاحة'));
   }
 
   Widget _buildReportView(StudentReport report) {
@@ -259,7 +250,7 @@ class _StudentReportPageState extends State<StudentReportPage>
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: AppConfig.primaryColor.withValues(alpha:0.3),
+            color: AppConfig.primaryColor.withValues(alpha: 0.3),
             blurRadius: 15,
             offset: const Offset(0, 5),
           ),
@@ -272,7 +263,7 @@ class _StudentReportPageState extends State<StudentReportPage>
             width: 80,
             height: 80,
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha:0.2),
+              color: Colors.white.withValues(alpha: 0.2),
               shape: BoxShape.circle,
               border: Border.all(color: Colors.white, width: 2),
             ),
@@ -308,7 +299,7 @@ class _StudentReportPageState extends State<StudentReportPage>
                   'رقم الطالب: ${student.studentId}',
                   style: GoogleFonts.cairo(
                     fontSize: 16,
-                    color: Colors.white.withValues(alpha:0.9),
+                    color: Colors.white.withValues(alpha: 0.9),
                   ),
                 ),
                 const SizedBox(height: 5),
@@ -316,7 +307,7 @@ class _StudentReportPageState extends State<StudentReportPage>
                   student.locationInfo,
                   style: GoogleFonts.cairo(
                     fontSize: 14,
-                    color: Colors.white.withValues(alpha:0.8),
+                    color: Colors.white.withValues(alpha: 0.8),
                   ),
                 ),
                 const SizedBox(height: 5),
@@ -324,7 +315,7 @@ class _StudentReportPageState extends State<StudentReportPage>
                   '${student.age} سنة',
                   style: GoogleFonts.cairo(
                     fontSize: 14,
-                    color: Colors.white.withValues(alpha:0.8),
+                    color: Colors.white.withValues(alpha: 0.8),
                   ),
                 ),
               ],
@@ -343,7 +334,7 @@ class _StudentReportPageState extends State<StudentReportPage>
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withValues(alpha:0.1),
+            color: Colors.grey.withValues(alpha: 0.1),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -379,7 +370,7 @@ class _StudentReportPageState extends State<StudentReportPage>
               Container(
                 padding: const EdgeInsets.all(15),
                 decoration: BoxDecoration(
-                  color: report.getEvaluationColor().withValues(alpha:0.1),
+                  color: report.getEvaluationColor().withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
@@ -394,10 +385,10 @@ class _StudentReportPageState extends State<StudentReportPage>
           Container(
             padding: const EdgeInsets.all(15),
             decoration: BoxDecoration(
-              color: report.getEvaluationColor().withValues(alpha:0.05),
+              color: report.getEvaluationColor().withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(15),
               border: Border.all(
-                color: report.getEvaluationColor().withValues(alpha:0.3),
+                color: report.getEvaluationColor().withValues(alpha: 0.3),
               ),
             ),
             child: Text(
@@ -425,7 +416,7 @@ class _StudentReportPageState extends State<StudentReportPage>
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withValues(alpha:0.1),
+            color: Colors.grey.withValues(alpha: 0.1),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -475,8 +466,8 @@ class _StudentReportPageState extends State<StudentReportPage>
                         color: attendanceRate >= 90
                             ? Colors.green
                             : attendanceRate >= 80
-                                ? Colors.orange
-                                : Colors.red,
+                            ? Colors.orange
+                            : Colors.red,
                         borderRadius: BorderRadius.circular(4),
                       ),
                     ),
@@ -528,8 +519,8 @@ class _StudentReportPageState extends State<StudentReportPage>
                       color: attendanceRate >= 90
                           ? Colors.green
                           : attendanceRate >= 80
-                              ? Colors.orange
-                              : Colors.red,
+                          ? Colors.orange
+                          : Colors.red,
                     ),
                   ),
                 ),
@@ -543,7 +534,12 @@ class _StudentReportPageState extends State<StudentReportPage>
     );
   }
 
-  Widget _buildAttendanceStat(String label, String value, Color color, IconData icon) {
+  Widget _buildAttendanceStat(
+    String label,
+    String value,
+    Color color,
+    IconData icon,
+  ) {
     return Column(
       children: [
         Icon(icon, color: color, size: 24),
@@ -558,10 +554,7 @@ class _StudentReportPageState extends State<StudentReportPage>
         ),
         Text(
           label,
-          style: GoogleFonts.cairo(
-            fontSize: 12,
-            color: Colors.grey[600],
-          ),
+          style: GoogleFonts.cairo(fontSize: 12, color: Colors.grey[600]),
         ),
       ],
     );
@@ -577,7 +570,7 @@ class _StudentReportPageState extends State<StudentReportPage>
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withValues(alpha:0.1),
+            color: Colors.grey.withValues(alpha: 0.1),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -590,11 +583,7 @@ class _StudentReportPageState extends State<StudentReportPage>
             padding: const EdgeInsets.all(20),
             child: Row(
               children: [
-                Icon(
-                  Icons.grade,
-                  color: AppConfig.primaryColor,
-                  size: 24,
-                ),
+                Icon(Icons.grade, color: AppConfig.primaryColor, size: 24),
                 const SizedBox(width: 10),
                 Text(
                   'الأداء الدراسي',
@@ -662,8 +651,8 @@ class _StudentReportPageState extends State<StudentReportPage>
                       gradeAverage >= 90
                           ? Colors.green
                           : gradeAverage >= 80
-                              ? Colors.orange
-                              : Colors.red,
+                          ? Colors.orange
+                          : Colors.red,
                       Icons.analytics,
                     ),
                   ],
@@ -685,13 +674,13 @@ class _StudentReportPageState extends State<StudentReportPage>
                         gradeAverage >= 90
                             ? Icons.star
                             : gradeAverage >= 80
-                                ? Icons.thumb_up
-                                : Icons.info,
+                            ? Icons.thumb_up
+                            : Icons.info,
                         color: gradeAverage >= 90
                             ? Colors.green
                             : gradeAverage >= 80
-                                ? Colors.orange
-                                : Colors.red,
+                            ? Colors.orange
+                            : Colors.red,
                         size: 24,
                       ),
                       const SizedBox(width: 10),
@@ -703,8 +692,8 @@ class _StudentReportPageState extends State<StudentReportPage>
                           color: gradeAverage >= 90
                               ? Colors.green
                               : gradeAverage >= 80
-                                  ? Colors.orange
-                                  : Colors.red,
+                              ? Colors.orange
+                              : Colors.red,
                         ),
                       ),
                     ],
@@ -720,7 +709,12 @@ class _StudentReportPageState extends State<StudentReportPage>
     );
   }
 
-  Widget _buildGradeStat(String label, String value, Color color, IconData icon) {
+  Widget _buildGradeStat(
+    String label,
+    String value,
+    Color color,
+    IconData icon,
+  ) {
     return Column(
       children: [
         Icon(icon, color: color, size: 24),
@@ -735,10 +729,7 @@ class _StudentReportPageState extends State<StudentReportPage>
         ),
         Text(
           label,
-          style: GoogleFonts.cairo(
-            fontSize: 12,
-            color: Colors.grey[600],
-          ),
+          style: GoogleFonts.cairo(fontSize: 12, color: Colors.grey[600]),
         ),
       ],
     );
@@ -767,7 +758,7 @@ class _StudentReportPageState extends State<StudentReportPage>
               borderRadius: BorderRadius.circular(15),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.grey.withValues(alpha:0.1),
+                  color: Colors.grey.withValues(alpha: 0.1),
                   blurRadius: 5,
                   offset: const Offset(0, 2),
                 ),
@@ -809,9 +800,7 @@ class _StudentReportPageState extends State<StudentReportPage>
                       ),
                       subtitle: Text(
                         '${attendance.date.day}/${attendance.date.month}/${attendance.date.year}',
-                        style: GoogleFonts.cairo(
-                          color: Colors.grey[600],
-                        ),
+                        style: GoogleFonts.cairo(color: Colors.grey[600]),
                       ),
                     );
                   },
@@ -831,7 +820,7 @@ class _StudentReportPageState extends State<StudentReportPage>
               borderRadius: BorderRadius.circular(15),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.grey.withValues(alpha:0.1),
+                  color: Colors.grey.withValues(alpha: 0.1),
                   blurRadius: 5,
                   offset: const Offset(0, 2),
                 ),
@@ -861,7 +850,9 @@ class _StudentReportPageState extends State<StudentReportPage>
                     final grade = report.recentGrades[index];
                     return ListTile(
                       leading: CircleAvatar(
-                        backgroundColor: grade.getPerformanceColor().withValues(alpha:0.1),
+                        backgroundColor: grade.getPerformanceColor().withValues(
+                          alpha: 0.1,
+                        ),
                         child: Text(
                           '${grade.percentage.toStringAsFixed(0)}%',
                           style: GoogleFonts.cairo(
@@ -880,9 +871,7 @@ class _StudentReportPageState extends State<StudentReportPage>
                       ),
                       subtitle: Text(
                         '${grade.getGradeTypeText()} - ${grade.score.toStringAsFixed(1)}/${grade.maxScore}',
-                        style: GoogleFonts.cairo(
-                          color: Colors.grey[600],
-                        ),
+                        style: GoogleFonts.cairo(color: Colors.grey[600]),
                       ),
                       trailing: Text(
                         grade.getPerformanceLevel(),

@@ -35,10 +35,7 @@ class QuickActionCard extends StatelessWidget {
             offset: const Offset(0, 1),
           ),
         ],
-        border: Border.all(
-          color: color.withValues(alpha: 0.1),
-          width: 1,
-        ),
+        border: Border.all(color: color.withValues(alpha: 0.1), width: 1),
       ),
       child: Material(
         color: Colors.transparent,
@@ -60,11 +57,7 @@ class QuickActionCard extends StatelessWidget {
                     color: color.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(AppConfig.borderRadius),
                   ),
-                  child: Icon(
-                    icon,
-                    color: color,
-                    size: 32,
-                  ),
+                  child: Icon(icon, color: color, size: 32),
                 ),
 
                 const SizedBox(height: AppConfig.spacingMD),

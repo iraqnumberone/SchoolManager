@@ -9,7 +9,8 @@ class RegisterPage extends StatefulWidget {
   State<RegisterPage> createState() => _RegisterPageState();
 }
 
-class _RegisterPageState extends State<RegisterPage> with TickerProviderStateMixin {
+class _RegisterPageState extends State<RegisterPage>
+    with TickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
@@ -33,13 +34,9 @@ class _RegisterPageState extends State<RegisterPage> with TickerProviderStateMix
       vsync: this,
     );
 
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeInOut,
-    ));
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    );
 
     _animationController.forward();
   }
@@ -175,10 +172,7 @@ class _RegisterPageState extends State<RegisterPage> with TickerProviderStateMix
               const SizedBox(height: 8),
               Text(
                 'املأ البيانات التالية لإنشاء حسابك',
-                style: GoogleFonts.cairo(
-                  fontSize: 16,
-                  color: Colors.grey[600],
-                ),
+                style: GoogleFonts.cairo(fontSize: 16, color: Colors.grey[600]),
               ),
               const SizedBox(height: 40),
 
@@ -386,7 +380,10 @@ class _RegisterPageState extends State<RegisterPage> with TickerProviderStateMix
             borderRadius: BorderRadius.circular(16),
             borderSide: BorderSide.none,
           ),
-          prefixIcon: const Icon(Icons.lock_outline, color: AppConfig.primaryColor),
+          prefixIcon: const Icon(
+            Icons.lock_outline,
+            color: AppConfig.primaryColor,
+          ),
           suffixIcon: IconButton(
             icon: Icon(
               obscureText ? Icons.visibility_off : Icons.visibility,
@@ -415,10 +412,7 @@ class _RegisterPageState extends State<RegisterPage> with TickerProviderStateMix
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
         gradient: const LinearGradient(
-          colors: [
-            AppConfig.primaryColor,
-            AppConfig.secondaryColor,
-          ],
+          colors: [AppConfig.primaryColor, AppConfig.secondaryColor],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
